@@ -25,7 +25,7 @@
 </head>
 <body>
 
-<!-- SECTION 1: AUTHENTICATION -->
+<!-- SECTION 1: AUTHENTICATION (LOGIN & REGISTER) -->
 <div id="authSection" class="container">
   <div class="auth-container">
     
@@ -94,9 +94,10 @@
   </div>
 </div>
 
-<!-- SECTION 2: DASHBOARD MAIN PAGE -->
+<!-- SECTION 2: DASHBOARD MAIN PAGE (RISK MANAGEMENT) -->
 <div id="mainDashboard" class="container-fluid my-4 px-4 d-none">
   
+  <!-- BAR INFORMASI USER & LOGOUT -->
   <div class="card p-3 mb-4 bg-white">
     <div class="d-flex justify-content-between align-items-center">
       <div>
@@ -120,6 +121,7 @@
     </div>
   </div>
 
+  <!-- Filter -->
   <div class="card p-3 mb-4">
     <div class="row g-3 align-items-center">
       <div class="col-md-5">
@@ -129,6 +131,7 @@
     </div>
   </div>
 
+  <!-- Tabel Utama -->
   <div class="card p-3">
     <div class="table-container">
       <table class="table table-hover table-bordered align-middle">
@@ -139,7 +142,7 @@
             <th rowspan="2">Kategori & Risiko</th>
             <th rowspan="2">Tools Yang Digunakan</th>
             <th colspan="12">Monitoring Kejadian Risiko Bulanan</th>
-            <th rowspan="2" style="width: 80px;">Aksi</th>
+            <th rowspan="2" style="width: 100px;">Aksi</th>
           </tr>
           <tr>
             <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
@@ -199,11 +202,11 @@
           <div class="row g-3 mb-3">
             <div class="col-md-2">
               <label class="form-label fw-semibold">Frekuensi (1-5)</label>
-              <input type="number" id="addFrekuensi" class="form-control" min="1" max="5" value="1" oninput="hitungSkorRisiko()" required>
+              <input type="number" id="addFrekuensi" class="form-control" min="1" max="5" value="1" oninput="hitungSkorRisiko('add')" required>
             </div>
             <div class="col-md-2">
               <label class="form-label fw-semibold">Dampak (1-5)</label>
-              <input type="number" id="addDampak" class="form-control" min="1" max="5" value="1" oninput="hitungSkorRisiko()" required>
+              <input type="number" id="addDampak" class="form-control" min="1" max="5" value="1" oninput="hitungSkorRisiko('add')" required>
             </div>
             <div class="col-md-2">
               <label class="form-label fw-semibold">Skor Risiko</label>
@@ -271,20 +274,132 @@
   </div>
 </div>
 
-<!-- MODAL DETAIL & EDIT PARAMETER RISIKO -->
+<!-- MODAL EDIT RISIKO -->
+<div class="modal fade" id="editRiskModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Detail Risiko</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditRisk">
+          <input type="hidden" id="editRiskId">
+          <div class="form-section-title"><i class="fa-solid fa-align-left me-1"></i> 1. IDENTIFIKASI RISIKO</div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Departemen / Divisi</label>
+              <input type="text" id="editDept" class="form-control bg-light" readonly>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Kategori Risiko</label>
+              <select id="editKategori" class="form-select" required>
+                <option value="Risiko pra-analitik">Risiko pra-analitik</option>
+                <option value="Risiko analitik">Risiko analitik</option>
+                <option value="Risiko pasca-analitik">Risiko pasca-analitik</option>
+                <option value="Risiko Operasional">Risiko Operasional</option>
+                <option value="Risiko K3 & Lingkungan">Risiko K3 & Lingkungan</option>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Risiko (Judul Kejadian)</label>
+              <input type="text" id="editRisiko" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Penyebab</label>
+              <textarea id="editPenyebab" class="form-control" rows="2" required></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Bahaya</label>
+              <textarea id="editBahaya" class="form-control" rows="2" required></textarea>
+            </div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-calculator me-1"></i> 2. ANALISIS RISIKO</div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-2">
+              <label class="form-label fw-semibold">Frekuensi (1-5)</label>
+              <input type="number" id="editFrekuensi" class="form-control" min="1" max="5" oninput="hitungSkorRisiko('edit')" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-semibold">Dampak (1-5)</label>
+              <input type="number" id="editDampak" class="form-control" min="1" max="5" oninput="hitungSkorRisiko('edit')" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-semibold">Skor Risiko</label>
+              <input type="number" id="editSkor" class="form-control bg-light" readonly>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Warna Band</label>
+              <input type="text" id="editWarnaBand" class="form-control bg-light fw-bold text-success" readonly>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Urutan Prioritas</label>
+              <input type="number" id="editUrutanPrioritas" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-list-check me-1"></i> 3. PENGENDALIAN RISIKO (MITIGASI)</div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Uraian / Rencana Strategi</label>
+              <textarea id="editRencanaStrategi" class="form-control" rows="2" required></textarea>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Klasifikasi Pengendalian Risiko</label>
+              <select id="editKlasifikasi" class="form-select" required>
+                <option value="Administratif - Preventif">Administratif - Preventif</option>
+                <option value="Administratif - Korektif">Administratif - Korektif</option>
+                <option value="Teknis - Preventif">Teknis - Preventif</option>
+                <option value="Teknis - Korektif">Teknis - Korektif</option>
+                <option value="APD - Preventif">APD - Preventif</option>
+                <option value="APD - Korektif">APD - Korektif</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Anggaran Biaya (Rp)</label>
+              <input type="number" id="editAnggaran" class="form-control" min="0" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Target Waktu Penyelesaian</label>
+              <input type="text" id="editTargetWaktu" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Pelaksana</label>
+              <input type="text" id="editPelaksana" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Penanggung Jawab</label>
+              <input type="text" id="editPenanggungJawab" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-wrench me-1"></i> 4. MONITORING TOOLS</div>
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label class="form-label fw-semibold">Tools Yang Digunakan</label>
+              <input type="text" id="editTools" class="form-control" required>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-warning" onclick="saveUpdatedRisk()"><i class="fa-solid fa-save me-1"></i> Update Perubahan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL -->
 <div class="modal fade" id="detailModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="detailModalTitle"><i class="fa-solid fa-circle-info me-2"></i>Detail Parameter Risiko</h5>
+        <h5 class="modal-title"><i class="fa-solid fa-circle-info me-2"></i>Detail Parameter Risiko</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body" id="detailModalContent">
-        <!-- Rendered dynamically -->
-      </div>
-      <div class="modal-footer" id="detailModalFooter">
-        <!-- Rendered dynamically -->
-      </div>
+      <div class="modal-body" id="detailModalContent"></div>
     </div>
   </div>
 </div>
@@ -293,6 +408,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+  // SILAKAN GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT WEB APP ANDA
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxSQPSt8bqCb6aK29Oo-2T8aPJ3oKYEwEKfIEcfd6J8ANdOZp72NGciuFBk_9Qmtwe7/exec";
 
   let currentUser = null;
@@ -438,6 +554,9 @@
         </td>
       `).join('');
 
+      // Cek Hak Akses Edit: Admin atau Dept yang Sesuai
+      const canEdit = currentUser.role === 'Admin' || item.dept.toLowerCase() === currentUser.dept.toLowerCase();
+
       let tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="text-center fw-bold">${index + 1}</td>
@@ -450,8 +569,11 @@
         <td><small>${item.tools}</small></td>
         ${monthInputsHTML}
         <td class="text-center">
-          <button class="btn btn-sm btn-info text-white" onclick="showDetail(${item.id})" title="Detail Parameter & Edit">
+          <button class="btn btn-sm btn-info text-white me-1" onclick="showDetail(${item.id})" title="Detail Parameter">
             <i class="fa-solid fa-eye"></i>
+          </button>
+          <button class="btn btn-sm btn-warning text-dark" onclick="openEditRiskModal(${item.id})" title="Edit Detail Risiko" ${!canEdit ? 'disabled' : ''}>
+            <i class="fa-solid fa-pen"></i>
           </button>
         </td>
       `;
@@ -469,17 +591,49 @@
   function openAddRiskModal() {
     document.getElementById('formAddRisk').reset();
     document.getElementById('addDept').value = currentUser.dept;
-    hitungSkorRisiko();
+    hitungSkorRisiko('add');
     new bootstrap.Modal(document.getElementById('addRiskModal')).show();
   }
 
-  function hitungSkorRisiko() {
-    const freq = parseInt(document.getElementById('addFrekuensi').value) || 1;
-    const damp = parseInt(document.getElementById('addDampak').value) || 1;
+  // Fungsi Pembuka Modal Edit Risiko
+  function openEditRiskModal(id) {
+    const item = riskData.find(r => r.id === id);
+    if (!item) return;
+
+    // Proteksi Otorisasi di Sisi Frontend
+    if (currentUser.role !== 'Admin' && item.dept.toLowerCase() !== currentUser.dept.toLowerCase()) {
+      Swal.fire('Akses Ditolak', 'Anda hanya dapat mengedit risiko dari departemen Anda sendiri.', 'warning');
+      return;
+    }
+
+    document.getElementById('editRiskId').value = item.id;
+    document.getElementById('editDept').value = item.dept;
+    document.getElementById('editKategori').value = item.kategori;
+    document.getElementById('editRisiko').value = item.risiko;
+    document.getElementById('editPenyebab').value = item.penyebab;
+    document.getElementById('editBahaya').value = item.bahaya;
+    document.getElementById('editFrekuensi').value = item.frekuensi;
+    document.getElementById('editDampak').value = item.dampak;
+    document.getElementById('editUrutanPrioritas').value = item.prioritas;
+    document.getElementById('editRencanaStrategi').value = item.rencana;
+    document.getElementById('editKlasifikasi').value = item.klasifikasi;
+    document.getElementById('editAnggaran').value = item.anggaran;
+    document.getElementById('editTargetWaktu').value = item.target;
+    document.getElementById('editPelaksana').value = item.pelaksana;
+    document.getElementById('editPenanggungJawab').value = item.penanggungJawab;
+    document.getElementById('editTools').value = item.tools;
+
+    hitungSkorRisiko('edit');
+    new bootstrap.Modal(document.getElementById('editRiskModal')).show();
+  }
+
+  function hitungSkorRisiko(prefix) {
+    const freq = parseInt(document.getElementById(`${prefix}Frekuensi`).value) || 1;
+    const damp = parseInt(document.getElementById(`${prefix}Dampak`).value) || 1;
     const skor = freq * damp;
 
-    const elSkor = document.getElementById('addSkor');
-    const elWarna = document.getElementById('addWarnaBand');
+    const elSkor = document.getElementById(`${prefix}Skor`);
+    const elWarna = document.getElementById(`${prefix}WarnaBand`);
 
     elSkor.value = skor;
 
@@ -548,163 +702,19 @@
     }
   }
 
-  // TAMPILKAN MODAL DETAIL
-  function showDetail(id) {
-    const item = riskData.find(r => r.id === id);
-    if (!item) return;
+  // Fungsi Menyimpan Perubahan Edit Risiko
+  async function saveUpdatedRisk() {
+    const form = document.getElementById('formEditRisk');
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
 
-    renderDetailView(item);
-    new bootstrap.Modal(document.getElementById('detailModal')).show();
-  }
-
-  // TAMPILAN READ-ONLY DETAIL
-  function renderDetailView(item) {
-    document.getElementById('detailModalTitle').innerHTML = `<i class="fa-solid fa-circle-info me-2"></i>Detail Parameter Risiko`;
-    
-    const content = `
-      <table class="table table-bordered">
-        <tr><th class="w-30 bg-light">Departemen</th><td>${item.dept}</td></tr>
-        <tr><th class="bg-light">Kategori Risiko</th><td>${item.kategori}</td></tr>
-        <tr><th class="bg-light">Risiko</th><td><b>${item.risiko}</b></td></tr>
-        <tr><th class="bg-light">Penyebab</th><td>${item.penyebab}</td></tr>
-        <tr><th class="bg-light">Bahaya</th><td>${item.bahaya}</td></tr>
-        <tr><th class="bg-light">Frekuensi / Dampak / Skor</th><td>${item.frekuensi} / ${item.dampak} / <b>${item.skor} (${item.warna})</b></td></tr>
-        <tr><th class="bg-light">Urutan Prioritas</th><td>${item.prioritas}</td></tr>
-        <tr><th class="bg-light">Rencana Strategi (Mitigasi)</th><td>${item.rencana}</td></tr>
-        <tr><th class="bg-light">Klasifikasi & Anggaran</th><td>${item.klasifikasi} | Rp ${Number(item.anggaran).toLocaleString()}</td></tr>
-        <tr><th class="bg-light">Target Waktu</th><td>${item.target}</td></tr>
-        <tr><th class="bg-light">Pelaksana / Penanggung Jawab</th><td>${item.pelaksana} / ${item.penanggungJawab}</td></tr>
-        <tr><th class="bg-light">Tools Digunakan</th><td>${item.tools}</td></tr>
-      </table>
-    `;
-
-    const footer = `
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-      <button type="button" class="btn btn-warning fw-bold text-dark" onclick="renderEditForm(${item.id})">
-        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Risiko
-      </button>
-    `;
-
-    document.getElementById('detailModalContent').innerHTML = content;
-    document.getElementById('detailModalFooter').innerHTML = footer;
-  }
-
-  // TAMPILAN FORM EDIT RISIKO
-  function renderEditForm(id) {
-    const item = riskData.find(r => r.id === id);
-    if (!item) return;
-
-    document.getElementById('detailModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square me-2"></i>Edit Parameter Risiko`;
-
-    const content = `
-      <form id="formEditRisk">
-        <input type="hidden" id="editId" value="${item.id}">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Departemen</label>
-            <input type="text" id="editDept" class="form-control bg-light" value="${item.dept}" readonly>
-          </div>
-          <div class="col-md-8">
-            <label class="form-label fw-semibold">Kategori Risiko</label>
-            <select id="editKategori" class="form-select">
-              <option value="Risiko pra-analitik" ${item.kategori === 'Risiko pra-analitik' ? 'selected' : ''}>Risiko pra-analitik</option>
-              <option value="Risiko analitik" ${item.kategori === 'Risiko analitik' ? 'selected' : ''}>Risiko analitik</option>
-              <option value="Risiko pasca-analitik" ${item.kategori === 'Risiko pasca-analitik' ? 'selected' : ''}>Risiko pasca-analitik</option>
-              <option value="Risiko Operasional" ${item.kategori === 'Risiko Operasional' ? 'selected' : ''}>Risiko Operasional</option>
-              <option value="Risiko K3 & Lingkungan" ${item.kategori === 'Risiko K3 & Lingkungan' ? 'selected' : ''}>Risiko K3 & Lingkungan</option>
-            </select>
-          </div>
-          <div class="col-md-12">
-            <label class="form-label fw-semibold">Risiko (Judul Kejadian)</label>
-            <input type="text" id="editRisiko" class="form-control" value="${item.risiko}" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Penyebab</label>
-            <textarea id="editPenyebab" class="form-control" rows="2" required>${item.penyebab}</textarea>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Bahaya</label>
-            <textarea id="editBahaya" class="form-control" rows="2" required>${item.bahaya}</textarea>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold">Frekuensi (1-5)</label>
-            <input type="number" id="editFrekuensi" class="form-control" min="1" max="5" value="${item.frekuensi}" oninput="hitungSkorEdit()" required>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold">Dampak (1-5)</label>
-            <input type="number" id="editDampak" class="form-control" min="1" max="5" value="${item.dampak}" oninput="hitungSkorEdit()" required>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold">Skor Risiko</label>
-            <input type="number" id="editSkor" class="form-control bg-light" value="${item.skor}" readonly>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold">Urutan Prioritas</label>
-            <input type="number" id="editPrioritas" class="form-control" value="${item.prioritas}" required>
-          </div>
-          <div class="col-md-8">
-            <label class="form-label fw-semibold">Rencana Strategi (Mitigasi)</label>
-            <textarea id="editRencana" class="form-control" rows="2" required>${item.rencana}</textarea>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Klasifikasi Pengendalian</label>
-            <select id="editKlasifikasi" class="form-select">
-              <option value="Administratif - Preventif" ${item.klasifikasi === 'Administratif - Preventif' ? 'selected' : ''}>Administratif - Preventif</option>
-              <option value="Administratif - Korektif" ${item.klasifikasi === 'Administratif - Korektif' ? 'selected' : ''}>Administratif - Korektif</option>
-              <option value="Teknis - Preventif" ${item.klasifikasi === 'Teknis - Preventif' ? 'selected' : ''}>Teknis - Preventif</option>
-              <option value="Teknis - Korektif" ${item.klasifikasi === 'Teknis - Korektif' ? 'selected' : ''}>Teknis - Korektif</option>
-              <option value="APD - Preventif" ${item.klasifikasi === 'APD - Preventif' ? 'selected' : ''}>APD - Preventif</option>
-              <option value="APD - Korektif" ${item.klasifikasi === 'APD - Korektif' ? 'selected' : ''}>APD - Korektif</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Anggaran Biaya (Rp)</label>
-            <input type="number" id="editAnggaran" class="form-control" value="${item.anggaran}" min="0">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Target Waktu</label>
-            <input type="text" id="editTarget" class="form-control" value="${item.target}" required>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Tools Digunakan</label>
-            <input type="text" id="editTools" class="form-control" value="${item.tools}" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Pelaksana</label>
-            <input type="text" id="editPelaksana" class="form-control" value="${item.pelaksana}" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Penanggung Jawab</label>
-            <input type="text" id="editPenanggungJawab" class="form-control" value="${item.penanggungJawab}" required>
-          </div>
-        </div>
-      </form>
-    `;
-
-    const footer = `
-      <button type="button" class="btn btn-secondary" onclick="renderDetailView(riskData.find(r => r.id === ${id}))">Batal</button>
-      <button type="button" class="btn btn-success fw-bold" onclick="saveEditedRisk()">
-        <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan
-      </button>
-    `;
-
-    document.getElementById('detailModalContent').innerHTML = content;
-    document.getElementById('detailModalFooter').innerHTML = footer;
-  }
-
-  function hitungSkorEdit() {
-    const f = parseInt(document.getElementById('editFrekuensi').value) || 1;
-    const d = parseInt(document.getElementById('editDampak').value) || 1;
-    document.getElementById('editSkor').value = f * d;
-  }
-
-  // PROSES SIMPAN EDIT KE BACKEND
-  async function saveEditedRisk() {
     const payload = {
       action: 'updateRisk',
       email: currentUser.email,
       data: {
-        id: parseInt(document.getElementById('editId').value),
+        id: parseInt(document.getElementById('editRiskId').value),
         dept: document.getElementById('editDept').value,
         kategori: document.getElementById('editKategori').value,
         risiko: document.getElementById('editRisiko').value,
@@ -712,11 +722,11 @@
         bahaya: document.getElementById('editBahaya').value,
         frekuensi: parseInt(document.getElementById('editFrekuensi').value),
         dampak: parseInt(document.getElementById('editDampak').value),
-        prioritas: parseInt(document.getElementById('editPrioritas').value),
-        rencana: document.getElementById('editRencana').value,
+        prioritas: parseInt(document.getElementById('editUrutanPrioritas').value),
+        rencana: document.getElementById('editRencanaStrategi').value,
         klasifikasi: document.getElementById('editKlasifikasi').value,
         anggaran: parseInt(document.getElementById('editAnggaran').value),
-        target: document.getElementById('editTarget').value,
+        target: document.getElementById('editTargetWaktu').value,
         pelaksana: document.getElementById('editPelaksana').value,
         penanggungJawab: document.getElementById('editPenanggungJawab').value,
         tools: document.getElementById('editTools').value
@@ -733,14 +743,14 @@
       const result = await res.json();
 
       if (result.success) {
-        bootstrap.Modal.getInstance(document.getElementById('detailModal')).hide();
+        bootstrap.Modal.getInstance(document.getElementById('editRiskModal')).hide();
         Swal.fire('Berhasil!', result.message, 'success');
         loadRisksFromAPI();
       } else {
         Swal.fire('Gagal', result.message, 'error');
       }
     } catch (e) {
-      Swal.fire('Error', 'Gagal memperbarui data risiko.', 'error');
+      Swal.fire('Error', 'Gagal menghubungi server.', 'error');
     }
   }
 
@@ -776,6 +786,31 @@
       return item.risiko.toLowerCase().includes(search) || item.penyebab.toLowerCase().includes(search);
     });
     renderTable(filtered);
+  }
+
+  function showDetail(id) {
+    const item = riskData.find(r => r.id === id);
+    if (!item) return;
+
+    const content = `
+      <table class="table table-bordered">
+        <tr><th class="w-30 bg-light">Departemen</th><td>${item.dept}</td></tr>
+        <tr><th class="bg-light">Kategori Risiko</th><td>${item.kategori}</td></tr>
+        <tr><th class="bg-light">Risiko</th><td><b>${item.risiko}</b></td></tr>
+        <tr><th class="bg-light">Penyebab</th><td>${item.penyebab}</td></tr>
+        <tr><th class="bg-light">Bahaya</th><td>${item.bahaya}</td></tr>
+        <tr><th class="bg-light">Frekuensi / Dampak / Skor</th><td>${item.frekuensi} / ${item.dampak} / <b>${item.skor} (${item.warna})</b></td></tr>
+        <tr><th class="bg-light">Urutan Prioritas</th><td>${item.prioritas}</td></tr>
+        <tr><th class="bg-light">Rencana Strategi (Mitigasi)</th><td>${item.rencana}</td></tr>
+        <tr><th class="bg-light">Klasifikasi & Anggaran</th><td>${item.klasifikasi} | Rp ${Number(item.anggaran).toLocaleString()}</td></tr>
+        <tr><th class="bg-light">Target Waktu</th><td>${item.target}</td></tr>
+        <tr><th class="bg-light">Pelaksana / Penanggung Jawab</th><td>${item.pelaksana} / ${item.penanggungJawab}</td></tr>
+        <tr><th class="bg-light">Tools Digunakan</th><td>${item.tools}</td></tr>
+      </table>
+    `;
+
+    document.getElementById('detailModalContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
   }
 </script>
 </body>
