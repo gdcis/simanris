@@ -2,102 +2,604 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Aplikasi Terproteksi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Manajemen Risiko</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; max-width: 500px; margin: 30px auto; padding: 0 20px; }
-    .hidden { display: none; }
-    form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-    input, textarea, button { padding: 10px; font-size: 14px; }
-    button { background-color: #0366d6; color: white; border: none; cursor: pointer; }
-    .item { background: #f6f8fa; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; }
+    body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .card { border: none; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .table-container { overflow-x: auto; }
+    .badge-band-hijau { background-color: #198754; color: white; }
+    .badge-band-kuning { background-color: #ffc107; color: black; }
+    .badge-band-oranye { background-color: #fd7e14; color: white; }
+    .badge-band-merah { background-color: #dc3545; color: white; }
+    .month-input { width: 65px; text-align: center; }
+    .table th { vertical-align: middle; font-size: 0.82rem; text-transform: uppercase; }
+    .table td { vertical-align: middle; font-size: 0.88rem; }
+    .form-section-title { font-size: 0.95rem; font-weight: 700; color: #0d6efd; border-bottom: 2px solid #e9ecef; padding-bottom: 5px; margin-bottom: 15px; }
+    .auth-container { max-width: 420px; margin: 80px auto; }
+    .d-none { display: none !important; }
   </style>
 </head>
 <body>
 
-  <!-- TAMPILAN 1: FORM LOGIN -->
-  <div id="loginSection">
-    <h2>Login Akses</h2>
-    <p>Masukkan email terdaftar Anda untuk melanjutkan:</p>
-    <input type="email" id="loginEmail" placeholder="nama@email.com" required>
-    <button onclick="login()">Masuk</button>
-    <p id="loginStatus" style="color:red;"></p>
+<!-- SECTION 1: AUTHENTICATION (LOGIN & REGISTER) -->
+<div id="authSection" class="container">
+  <div class="auth-container">
+    
+    <!-- CARD LOGIN -->
+    <div id="loginCard" class="card p-4">
+      <div class="text-center mb-4">
+        <h4 class="fw-bold text-primary"><i class="fa-solid fa-shield-halved me-2"></i>Risk System</h4>
+        <p class="text-muted small">Silakan masuk ke akun Anda</p>
+      </div>
+      <form id="formLogin" onsubmit="handleLogin(event)">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="nama@domain.com" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password</label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 fw-bold mb-3">Login</button>
+      </form>
+      <div class="text-center">
+        <small class="text-muted">Belum punya akun? <a href="#" onclick="toggleAuthView('register')">Daftar Akun Baru</a></small>
+      </div>
+    </div>
+
+    <!-- CARD REGISTER -->
+    <div id="registerCard" class="card p-4 d-none">
+      <div class="text-center mb-4">
+        <h4 class="fw-bold text-success"><i class="fa-solid fa-user-plus me-2"></i>Registrasi User</h4>
+        <p class="text-muted small">Buat akun Sistem Manajemen Risiko</p>
+      </div>
+      <form id="formRegister" onsubmit="handleRegister(event)">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nama Lengkap</label>
+          <input type="text" id="regName" class="form-control" placeholder="Nama Anda" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email</label>
+          <input type="email" id="regEmail" class="form-control" placeholder="nama@domain.com" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Departemen / Divisi</label>
+          <select id="regDept" class="form-select" required>
+            <option value="">-- Pilih Departemen --</option>
+            <option value="IT">IT</option>
+            <option value="CS">CS</option>
+            <option value="LAB">Laboratorium</option>
+            <option value="HRGA">HRGA</option>
+            <option value="FINANCE">Finance</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password</label>
+          <input type="password" id="regPassword" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-success w-100 fw-bold mb-3">Daftar Sekarang</button>
+      </form>
+      <div class="text-center">
+        <small class="text-muted">Sudah punya akun? <a href="#" onclick="toggleAuthView('login')">Masuk di sini</a></small>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SECTION 2: DASHBOARD MAIN PAGE (RISK MANAGEMENT) -->
+<div id="mainDashboard" class="container-fluid my-4 px-4 d-none">
+  
+  <!-- BAR INFORMASI USER & LOGOUT -->
+  <div class="card p-3 mb-4 bg-white">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <span class="text-muted me-2">Selamat Datang,</span>
+        <strong id="userDisplayName" class="text-primary fs-6">User Name</strong>
+        <span class="badge bg-info text-dark ms-2" id="userDisplayDept">Departemen: -</span>
+        <span class="badge bg-secondary ms-1" id="userDisplayRole">User</span>
+      </div>
+      <button class="btn btn-outline-danger btn-sm" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
+    </div>
   </div>
 
-  <!-- TAMPILAN 2: APLIKASI UTAMA (Di-hide secara bawaan) -->
-  <div id="appSection" class="hidden">
-    <h2>Kirim Data</h2>
-    <form id="dataForm">
-      <input type="text" id="nama" placeholder="Nama Anda" required>
-      <textarea id="pesan" placeholder="Tulis pesan..." required></textarea>
-      <button type="submit">Kirim Data</button>
-    </form>
-
-    <h2>Data Terformat</h2>
-    <div id="dataList">Loading data...</div>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold text-primary mb-1"><i class="fa-solid fa-shield-halved me-2"></i>Manajemen & Monitoring Risiko</h3>
+      <p class="text-muted mb-0">Monitoring dan mitigasi risiko khusus departemen Anda</p>
+    </div>
+    <div>
+      <button class="btn btn-success me-2" onclick="openAddRiskModal()"><i class="fa-solid fa-plus me-1"></i> Tambah Risiko</button>
+      <button class="btn btn-primary" onclick="simpanSemuaMonitoring()"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan</button>
+    </div>
   </div>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxcjecbQvArwX68F7Y6jWvA_b6xedgcHEPlXoked0q3ZOSm71ddH_52goBfJy_1A5BasA/exec";
-    let currentUserEmail = "";
+  <!-- Filter -->
+  <div class="card p-3 mb-4">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-5">
+        <label class="form-label fw-semibold">Cari Risiko / Penyebab</label>
+        <input type="text" id="filterSearch" class="form-control" placeholder="Kata kunci..." onkeyup="filterTable()">
+      </div>
+    </div>
+  </div>
 
-    // Fungsi Verifikasi Email saat Login
-    async function login() {
-      const email = document.getElementById('loginEmail').value;
-      const status = document.getElementById('loginStatus');
-      
-      if(!email) return alert("Isi email terlebih dahulu!");
-      status.innerText = "Checking email...";
+  <!-- Tabel Utama -->
+  <div class="card p-3">
+    <div class="table-container">
+      <table class="table table-hover table-bordered align-middle">
+        <thead class="table-dark text-center">
+          <tr>
+            <th rowspan="2" style="width: 40px;">No</th>
+            <th rowspan="2">Dept</th>
+            <th rowspan="2">Kategori & Risiko</th>
+            <th rowspan="2">Tools Yang Digunakan</th>
+            <th colspan="12">Monitoring Kejadian Risiko Bulanan</th>
+            <th rowspan="2" style="width: 80px;">Aksi</th>
+          </tr>
+          <tr>
+            <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
+            <th>Mei</th><th>Jun</th><th>Jul</th><th>Agu</th>
+            <th>Sep</th><th>Okt</th><th>Nov</th><th>Des</th>
+          </tr>
+        </thead>
+        <tbody id="riskTableBody">
+          <!-- Rendered by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-      try {
-        const res = await fetch(`${API_URL}?action=checkEmail&email=${encodeURIComponent(email)}`);
-        const data = await res.json();
+<!-- MODAL TAMBAH RISIKO -->
+<div class="modal fade" id="addRiskModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="fa-solid fa-folder-plus me-2"></i>Tambah Risiko Baru</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formAddRisk">
+          <div class="form-section-title"><i class="fa-solid fa-align-left me-1"></i> 1. IDENTIFIKASI RISIKO</div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Departemen / Divisi</label>
+              <input type="text" id="addDept" class="form-control bg-light" readonly>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Kategori Risiko</label>
+              <select id="addKategori" class="form-select" required>
+                <option value="Risiko pra-analitik">Risiko pra-analitik</option>
+                <option value="Risiko analitik">Risiko analitik</option>
+                <option value="Risiko pasca-analitik">Risiko pasca-analitik</option>
+                <option value="Risiko Operasional">Risiko Operasional</option>
+                <option value="Risiko K3 & Lingkungan">Risiko K3 & Lingkungan</option>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Risiko (Judul Kejadian)</label>
+              <input type="text" id="addRisiko" class="form-control" placeholder="Uraian judul risiko" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Penyebab</label>
+              <textarea id="addPenyebab" class="form-control" rows="2" placeholder="Faktor penyebab kejadian" required></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Bahaya</label>
+              <textarea id="addBahaya" class="form-control" rows="2" placeholder="Dampak bahaya yang ditimbulkan" required></textarea>
+            </div>
+          </div>
 
-        if (data.allowed) {
-          currentUserEmail = email;
-          document.getElementById('loginSection').classList.add('hidden');
-          document.getElementById('appSection').classList.remove('hidden');
-          loadData();
-        } else {
-          status.innerText = "Akses Ditolak! Email Anda tidak terdaftar.";
-        }
-      } catch (err) {
-        status.innerText = "Gagal memverifikasi email.";
-      }
+          <div class="form-section-title"><i class="fa-solid fa-calculator me-1"></i> 2. ANALISIS RISIKO</div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-2">
+              <label class="form-label fw-semibold">Frekuensi (1-5)</label>
+              <input type="number" id="addFrekuensi" class="form-control" min="1" max="5" value="1" oninput="hitungSkorRisiko()" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-semibold">Dampak (1-5)</label>
+              <input type="number" id="addDampak" class="form-control" min="1" max="5" value="1" oninput="hitungSkorRisiko()" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-semibold">Skor Risiko</label>
+              <input type="number" id="addSkor" class="form-control bg-light" readonly value="1">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Warna Band</label>
+              <input type="text" id="addWarnaBand" class="form-control bg-light fw-bold text-success" readonly value="Hijau">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Urutan Prioritas</label>
+              <input type="number" id="addUrutanPrioritas" class="form-control" placeholder="Contoh: 1" required>
+            </div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-list-check me-1"></i> 3. PENGENDALIAN RISIKO (MITIGASI)</div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Uraian / Rencana Strategi</label>
+              <textarea id="addRencanaStrategi" class="form-control" rows="2" placeholder="Langkah-langkah penanganan risiko" required></textarea>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Klasifikasi Pengendalian Risiko</label>
+              <select id="addKlasifikasi" class="form-select" required>
+                <option value="Administratif - Preventif">Administratif - Preventif</option>
+                <option value="Teknis - Preventif">Teknis - Preventif</option>
+                <option value="APD - Preventif">APD - Preventif</option>
+                <option value="Korektif">Korektif</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Anggaran Biaya (Rp)</label>
+              <input type="number" id="addAnggaran" class="form-control" min="0" value="0" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Target Waktu Penyelesaian</label>
+              <input type="text" id="addTargetWaktu" class="form-control" placeholder="Contoh: 1 hari kerja" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Pelaksana</label>
+              <input type="text" id="addPelaksana" class="form-control" placeholder="Contoh: Staff" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Penanggung Jawab</label>
+              <input type="text" id="addPenanggungJawab" class="form-control" placeholder="Contoh: Supervisor" required>
+            </div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-wrench me-1"></i> 4. MONITORING TOOLS</div>
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label class="form-label fw-semibold">Tools Yang Digunakan</label>
+              <input type="text" id="addTools" class="form-control" placeholder="Contoh: Log Sistem" required>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-success" onclick="saveNewRisk()"><i class="fa-solid fa-save me-1"></i> Simpan Risiko</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="fa-solid fa-circle-info me-2"></i>Detail Parameter Risiko</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detailModalContent"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // SILAKAN GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT WEB APP ANDA
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxSQPSt8bqCb6aK29Oo-2T8aPJ3oKYEwEKfIEcfd6J8ANdOZp72NGciuFBk_9Qmtwe7/exec";
+
+  let currentUser = null;
+  let riskData = [];
+  const months = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const savedUser = localStorage.getItem("riskAppUser");
+    if (savedUser) {
+      currentUser = JSON.parse(savedUser);
+      showDashboard();
     }
+  });
 
-    // Fungsi Kirim Data
-    document.getElementById('dataForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const nama = document.getElementById('nama').value;
-      const pesan = document.getElementById('pesan').value;
+  function toggleAuthView(view) {
+    if (view === 'register') {
+      document.getElementById('loginCard').classList.add('d-none');
+      document.getElementById('registerCard').classList.remove('d-none');
+    } else {
+      document.getElementById('registerCard').classList.add('d-none');
+      document.getElementById('loginCard').classList.remove('d-none');
+    }
+  }
 
-      try {
-        await fetch(API_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nama, pesan, email: currentUserEmail })
-        });
+  async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
 
-        alert("Data berhasil dikirim!");
-        document.getElementById('dataForm').reset();
-        loadData();
-      } catch (err) {
-        alert("Gagal mengirim data");
-      }
-    });
-
-    // Fungsi Ambil Data
-    async function loadData() {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      const container = document.getElementById('dataList');
-      container.innerHTML = '';
-      
-      data.forEach(item => {
-        container.innerHTML += `<div class="item"><strong>${item.nama}</strong><p>${item.pesan}</p></div>`;
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'login', email: email, password: password })
       });
+      const result = await res.json();
+
+      if (result.success) {
+        currentUser = result.user;
+        localStorage.setItem("riskAppUser", JSON.stringify(currentUser));
+        Swal.fire({ icon: 'success', title: 'Login Berhasil', timer: 1200, showConfirmButton: false });
+        showDashboard();
+      } else {
+        Swal.fire('Gagal Login', result.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal menghubungkan ke server.', 'error');
     }
-  </script>
+  }
+
+  async function handleRegister(e) {
+    e.preventDefault();
+    const data = {
+      name: document.getElementById('regName').value,
+      email: document.getElementById('regEmail').value,
+      dept: document.getElementById('regDept').value,
+      password: document.getElementById('regPassword').value
+    };
+
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'register', data: data })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        Swal.fire('Berhasil', result.message, 'success');
+        document.getElementById('formRegister').reset();
+        toggleAuthView('login');
+      } else {
+        Swal.fire('Gagal', result.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal mendaftar user baru.', 'error');
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("riskAppUser");
+    currentUser = null;
+    document.getElementById('mainDashboard').classList.add('d-none');
+    document.getElementById('authSection').classList.remove('d-none');
+  }
+
+  function showDashboard() {
+    document.getElementById('authSection').classList.add('d-none');
+    document.getElementById('mainDashboard').classList.remove('d-none');
+
+    document.getElementById('userDisplayName').innerText = currentUser.name;
+    document.getElementById('userDisplayDept').innerText = `Dept: ${currentUser.dept}`;
+    document.getElementById('userDisplayRole').innerText = currentUser.role;
+
+    loadRisksFromAPI();
+  }
+
+  async function loadRisksFromAPI() {
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getRisks', email: currentUser.email })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        riskData = result.data;
+        renderTable(riskData);
+        Swal.close();
+      } else {
+        Swal.fire('Gagal Memuat Data', result.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal memuat data risiko dari server.', 'error');
+    }
+  }
+
+  function renderTable(dataToRender) {
+    const tbody = document.getElementById('riskTableBody');
+    tbody.innerHTML = '';
+
+    if (dataToRender.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="17" class="text-center text-muted">Belum ada data risiko untuk departemen ini.</td></tr>';
+      return;
+    }
+
+    dataToRender.forEach((item, index) => {
+      let badgeClass = 'badge-band-hijau';
+      const w = item.warna ? item.warna.toLowerCase() : 'hijau';
+      if (w === 'kuning') badgeClass = 'badge-band-kuning';
+      if (w === 'oranye') badgeClass = 'badge-band-oranye';
+      if (w === 'merah') badgeClass = 'badge-band-merah';
+
+      let monthInputsHTML = months.map(m => `
+        <td class="p-1 text-center">
+          <input type="number" min="0" class="form-control form-control-sm month-input" 
+                 value="${item.monitoring[m] ?? 0}" 
+                 onchange="updateMonitoringValue(${item.id}, '${m}', this.value)">
+        </td>
+      `).join('');
+
+      let tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="text-center fw-bold">${index + 1}</td>
+        <td class="text-center"><span class="badge bg-secondary">${item.dept}</span></td>
+        <td>
+          <div class="fw-semibold">${item.risiko}</div>
+          <small class="text-muted">${item.kategori}</small> 
+          <span class="badge ${badgeClass} ms-1">${item.warna} (${item.skor})</span>
+        </td>
+        <td><small>${item.tools}</small></td>
+        ${monthInputsHTML}
+        <td class="text-center">
+          <button class="btn btn-sm btn-info text-white" onclick="showDetail(${item.id})" title="Detail Parameter">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateMonitoringValue(id, month, value) {
+    const item = riskData.find(r => r.id === id);
+    if (item) {
+      item.monitoring[month] = parseInt(value) || 0;
+    }
+  }
+
+  function openAddRiskModal() {
+    document.getElementById('formAddRisk').reset();
+    document.getElementById('addDept').value = currentUser.dept;
+    hitungSkorRisiko();
+    new bootstrap.Modal(document.getElementById('addRiskModal')).show();
+  }
+
+  function hitungSkorRisiko() {
+    const freq = parseInt(document.getElementById('addFrekuensi').value) || 1;
+    const damp = parseInt(document.getElementById('addDampak').value) || 1;
+    const skor = freq * damp;
+
+    const elSkor = document.getElementById('addSkor');
+    const elWarna = document.getElementById('addWarnaBand');
+
+    elSkor.value = skor;
+
+    if (skor >= 16) {
+      elWarna.value = "Merah";
+      elWarna.className = "form-control bg-light fw-bold text-danger";
+    } else if (skor >= 10) {
+      elWarna.value = "Oranye";
+      elWarna.className = "form-control bg-light fw-bold text-warning";
+    } else if (skor >= 5) {
+      elWarna.value = "Kuning";
+      elWarna.className = "form-control bg-light fw-bold text-warning";
+    } else {
+      elWarna.value = "Hijau";
+      elWarna.className = "form-control bg-light fw-bold text-success";
+    }
+  }
+
+  async function saveNewRisk() {
+    const form = document.getElementById('formAddRisk');
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const payload = {
+      action: 'addRisk',
+      email: currentUser.email,
+      data: {
+        dept: currentUser.dept,
+        kategori: document.getElementById('addKategori').value,
+        risiko: document.getElementById('addRisiko').value,
+        penyebab: document.getElementById('addPenyebab').value,
+        bahaya: document.getElementById('addBahaya').value,
+        frekuensi: parseInt(document.getElementById('addFrekuensi').value),
+        dampak: parseInt(document.getElementById('addDampak').value),
+        prioritas: parseInt(document.getElementById('addUrutanPrioritas').value),
+        rencana: document.getElementById('addRencanaStrategi').value,
+        klasifikasi: document.getElementById('addKlasifikasi').value,
+        anggaran: parseInt(document.getElementById('addAnggaran').value),
+        target: document.getElementById('addTargetWaktu').value,
+        pelaksana: document.getElementById('addPelaksana').value,
+        penanggungJawab: document.getElementById('addPenanggungJawab').value,
+        tools: document.getElementById('addTools').value
+      }
+    };
+
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        bootstrap.Modal.getInstance(document.getElementById('addRiskModal')).hide();
+        Swal.fire('Berhasil!', result.message, 'success');
+        loadRisksFromAPI();
+      } else {
+        Swal.fire('Gagal', result.message, 'error');
+      }
+    } catch (e) {
+      Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+    }
+  }
+
+  async function simpanSemuaMonitoring() {
+    const payload = {
+      action: 'saveMonitoring',
+      email: currentUser.email,
+      data: riskData
+    };
+
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        Swal.fire('Berhasil!', result.message, 'success');
+      } else {
+        Swal.fire('Gagal', result.message, 'error');
+      }
+    } catch (e) {
+      Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+    }
+  }
+
+  function filterTable() {
+    const search = document.getElementById('filterSearch').value.toLowerCase();
+    const filtered = riskData.filter(item => {
+      return item.risiko.toLowerCase().includes(search) || item.penyebab.toLowerCase().includes(search);
+    });
+    renderTable(filtered);
+  }
+
+  function showDetail(id) {
+    const item = riskData.find(r => r.id === id);
+    if (!item) return;
+
+    const content = `
+      <table class="table table-bordered">
+        <tr><th class="w-30 bg-light">Departemen</th><td>${item.dept}</td></tr>
+        <tr><th class="bg-light">Kategori Risiko</th><td>${item.kategori}</td></tr>
+        <tr><th class="bg-light">Risiko</th><td><b>${item.risiko}</b></td></tr>
+        <tr><th class="bg-light">Penyebab</th><td>${item.penyebab}</td></tr>
+        <tr><th class="bg-light">Bahaya</th><td>${item.bahaya}</td></tr>
+        <tr><th class="bg-light">Frekuensi / Dampak / Skor</th><td>${item.frekuensi} / ${item.dampak} / <b>${item.skor} (${item.warna})</b></td></tr>
+        <tr><th class="bg-light">Urutan Prioritas</th><td>${item.prioritas}</td></tr>
+        <tr><th class="bg-light">Rencana Strategi (Mitigasi)</th><td>${item.rencana}</td></tr>
+        <tr><th class="bg-light">Klasifikasi & Anggaran</th><td>${item.klasifikasi} | Rp ${Number(item.anggaran).toLocaleString()}</td></tr>
+        <tr><th class="bg-light">Target Waktu</th><td>${item.target}</td></tr>
+        <tr><th class="bg-light">Pelaksana / Penanggung Jawab</th><td>${item.pelaksana} / ${item.penanggungJawab}</td></tr>
+        <tr><th class="bg-light">Tools Digunakan</th><td>${item.tools}</td></tr>
+      </table>
+    `;
+
+    document.getElementById('detailModalContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
+  }
+</script>
 </body>
 </html>
