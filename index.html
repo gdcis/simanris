@@ -25,7 +25,7 @@
 </head>
 <body>
 
-<!-- SECTION 1: AUTHENTICATION (LOGIN & REGISTER) -->
+<!-- SECTION 1: AUTHENTICATION -->
 <div id="authSection" class="container">
   <div class="auth-container">
     
@@ -94,10 +94,9 @@
   </div>
 </div>
 
-<!-- SECTION 2: DASHBOARD MAIN PAGE (RISK MANAGEMENT) -->
+<!-- SECTION 2: DASHBOARD MAIN PAGE -->
 <div id="mainDashboard" class="container-fluid my-4 px-4 d-none">
   
-  <!-- BAR INFORMASI USER & LOGOUT -->
   <div class="card p-3 mb-4 bg-white">
     <div class="d-flex justify-content-between align-items-center">
       <div>
@@ -121,7 +120,6 @@
     </div>
   </div>
 
-  <!-- Filter -->
   <div class="card p-3 mb-4">
     <div class="row g-3 align-items-center">
       <div class="col-md-5">
@@ -131,7 +129,6 @@
     </div>
   </div>
 
-  <!-- Tabel Utama -->
   <div class="card p-3">
     <div class="table-container">
       <table class="table table-hover table-bordered align-middle">
@@ -274,15 +271,20 @@
   </div>
 </div>
 
-<!-- MODAL DETAIL -->
+<!-- MODAL DETAIL & EDIT PARAMETER RISIKO -->
 <div class="modal fade" id="detailModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title"><i class="fa-solid fa-circle-info me-2"></i>Detail Parameter Risiko</h5>
+        <h5 class="modal-title" id="detailModalTitle"><i class="fa-solid fa-circle-info me-2"></i>Detail Parameter Risiko</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body" id="detailModalContent"></div>
+      <div class="modal-body" id="detailModalContent">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer" id="detailModalFooter">
+        <!-- Rendered dynamically -->
+      </div>
     </div>
   </div>
 </div>
@@ -291,7 +293,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  // SILAKAN GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT WEB APP ANDA
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxSQPSt8bqCb6aK29Oo-2T8aPJ3oKYEwEKfIEcfd6J8ANdOZp72NGciuFBk_9Qmtwe7/exec";
 
   let currentUser = null;
@@ -449,7 +450,7 @@
         <td><small>${item.tools}</small></td>
         ${monthInputsHTML}
         <td class="text-center">
-          <button class="btn btn-sm btn-info text-white" onclick="showDetail(${item.id})" title="Detail Parameter">
+          <button class="btn btn-sm btn-info text-white" onclick="showDetail(${item.id})" title="Detail Parameter & Edit">
             <i class="fa-solid fa-eye"></i>
           </button>
         </td>
@@ -547,6 +548,202 @@
     }
   }
 
+  // TAMPILKAN MODAL DETAIL
+  function showDetail(id) {
+    const item = riskData.find(r => r.id === id);
+    if (!item) return;
+
+    renderDetailView(item);
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
+  }
+
+  // TAMPILAN READ-ONLY DETAIL
+  function renderDetailView(item) {
+    document.getElementById('detailModalTitle').innerHTML = `<i class="fa-solid fa-circle-info me-2"></i>Detail Parameter Risiko`;
+    
+    const content = `
+      <table class="table table-bordered">
+        <tr><th class="w-30 bg-light">Departemen</th><td>${item.dept}</td></tr>
+        <tr><th class="bg-light">Kategori Risiko</th><td>${item.kategori}</td></tr>
+        <tr><th class="bg-light">Risiko</th><td><b>${item.risiko}</b></td></tr>
+        <tr><th class="bg-light">Penyebab</th><td>${item.penyebab}</td></tr>
+        <tr><th class="bg-light">Bahaya</th><td>${item.bahaya}</td></tr>
+        <tr><th class="bg-light">Frekuensi / Dampak / Skor</th><td>${item.frekuensi} / ${item.dampak} / <b>${item.skor} (${item.warna})</b></td></tr>
+        <tr><th class="bg-light">Urutan Prioritas</th><td>${item.prioritas}</td></tr>
+        <tr><th class="bg-light">Rencana Strategi (Mitigasi)</th><td>${item.rencana}</td></tr>
+        <tr><th class="bg-light">Klasifikasi & Anggaran</th><td>${item.klasifikasi} | Rp ${Number(item.anggaran).toLocaleString()}</td></tr>
+        <tr><th class="bg-light">Target Waktu</th><td>${item.target}</td></tr>
+        <tr><th class="bg-light">Pelaksana / Penanggung Jawab</th><td>${item.pelaksana} / ${item.penanggungJawab}</td></tr>
+        <tr><th class="bg-light">Tools Digunakan</th><td>${item.tools}</td></tr>
+      </table>
+    `;
+
+    const footer = `
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      <button type="button" class="btn btn-warning fw-bold text-dark" onclick="renderEditForm(${item.id})">
+        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Risiko
+      </button>
+    `;
+
+    document.getElementById('detailModalContent').innerHTML = content;
+    document.getElementById('detailModalFooter').innerHTML = footer;
+  }
+
+  // TAMPILAN FORM EDIT RISIKO
+  function renderEditForm(id) {
+    const item = riskData.find(r => r.id === id);
+    if (!item) return;
+
+    document.getElementById('detailModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square me-2"></i>Edit Parameter Risiko`;
+
+    const content = `
+      <form id="formEditRisk">
+        <input type="hidden" id="editId" value="${item.id}">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Departemen</label>
+            <input type="text" id="editDept" class="form-control bg-light" value="${item.dept}" readonly>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">Kategori Risiko</label>
+            <select id="editKategori" class="form-select">
+              <option value="Risiko pra-analitik" ${item.kategori === 'Risiko pra-analitik' ? 'selected' : ''}>Risiko pra-analitik</option>
+              <option value="Risiko analitik" ${item.kategori === 'Risiko analitik' ? 'selected' : ''}>Risiko analitik</option>
+              <option value="Risiko pasca-analitik" ${item.kategori === 'Risiko pasca-analitik' ? 'selected' : ''}>Risiko pasca-analitik</option>
+              <option value="Risiko Operasional" ${item.kategori === 'Risiko Operasional' ? 'selected' : ''}>Risiko Operasional</option>
+              <option value="Risiko K3 & Lingkungan" ${item.kategori === 'Risiko K3 & Lingkungan' ? 'selected' : ''}>Risiko K3 & Lingkungan</option>
+            </select>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Risiko (Judul Kejadian)</label>
+            <input type="text" id="editRisiko" class="form-control" value="${item.risiko}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Penyebab</label>
+            <textarea id="editPenyebab" class="form-control" rows="2" required>${item.penyebab}</textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Bahaya</label>
+            <textarea id="editBahaya" class="form-control" rows="2" required>${item.bahaya}</textarea>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Frekuensi (1-5)</label>
+            <input type="number" id="editFrekuensi" class="form-control" min="1" max="5" value="${item.frekuensi}" oninput="hitungSkorEdit()" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Dampak (1-5)</label>
+            <input type="number" id="editDampak" class="form-control" min="1" max="5" value="${item.dampak}" oninput="hitungSkorEdit()" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Skor Risiko</label>
+            <input type="number" id="editSkor" class="form-control bg-light" value="${item.skor}" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Urutan Prioritas</label>
+            <input type="number" id="editPrioritas" class="form-control" value="${item.prioritas}" required>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">Rencana Strategi (Mitigasi)</label>
+            <textarea id="editRencana" class="form-control" rows="2" required>${item.rencana}</textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Klasifikasi Pengendalian</label>
+            <select id="editKlasifikasi" class="form-select">
+              <option value="Administratif - Preventif" ${item.klasifikasi === 'Administratif - Preventif' ? 'selected' : ''}>Administratif - Preventif</option>
+              <option value="Administratif - Korektif" ${item.klasifikasi === 'Administratif - Korektif' ? 'selected' : ''}>Administratif - Korektif</option>
+              <option value="Teknis - Preventif" ${item.klasifikasi === 'Teknis - Preventif' ? 'selected' : ''}>Teknis - Preventif</option>
+              <option value="Teknis - Korektif" ${item.klasifikasi === 'Teknis - Korektif' ? 'selected' : ''}>Teknis - Korektif</option>
+              <option value="APD - Preventif" ${item.klasifikasi === 'APD - Preventif' ? 'selected' : ''}>APD - Preventif</option>
+              <option value="APD - Korektif" ${item.klasifikasi === 'APD - Korektif' ? 'selected' : ''}>APD - Korektif</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Anggaran Biaya (Rp)</label>
+            <input type="number" id="editAnggaran" class="form-control" value="${item.anggaran}" min="0">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Target Waktu</label>
+            <input type="text" id="editTarget" class="form-control" value="${item.target}" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Tools Digunakan</label>
+            <input type="text" id="editTools" class="form-control" value="${item.tools}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Pelaksana</label>
+            <input type="text" id="editPelaksana" class="form-control" value="${item.pelaksana}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Penanggung Jawab</label>
+            <input type="text" id="editPenanggungJawab" class="form-control" value="${item.penanggungJawab}" required>
+          </div>
+        </div>
+      </form>
+    `;
+
+    const footer = `
+      <button type="button" class="btn btn-secondary" onclick="renderDetailView(riskData.find(r => r.id === ${id}))">Batal</button>
+      <button type="button" class="btn btn-success fw-bold" onclick="saveEditedRisk()">
+        <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan
+      </button>
+    `;
+
+    document.getElementById('detailModalContent').innerHTML = content;
+    document.getElementById('detailModalFooter').innerHTML = footer;
+  }
+
+  function hitungSkorEdit() {
+    const f = parseInt(document.getElementById('editFrekuensi').value) || 1;
+    const d = parseInt(document.getElementById('editDampak').value) || 1;
+    document.getElementById('editSkor').value = f * d;
+  }
+
+  // PROSES SIMPAN EDIT KE BACKEND
+  async function saveEditedRisk() {
+    const payload = {
+      action: 'updateRisk',
+      email: currentUser.email,
+      data: {
+        id: parseInt(document.getElementById('editId').value),
+        dept: document.getElementById('editDept').value,
+        kategori: document.getElementById('editKategori').value,
+        risiko: document.getElementById('editRisiko').value,
+        penyebab: document.getElementById('editPenyebab').value,
+        bahaya: document.getElementById('editBahaya').value,
+        frekuensi: parseInt(document.getElementById('editFrekuensi').value),
+        dampak: parseInt(document.getElementById('editDampak').value),
+        prioritas: parseInt(document.getElementById('editPrioritas').value),
+        rencana: document.getElementById('editRencana').value,
+        klasifikasi: document.getElementById('editKlasifikasi').value,
+        anggaran: parseInt(document.getElementById('editAnggaran').value),
+        target: document.getElementById('editTarget').value,
+        pelaksana: document.getElementById('editPelaksana').value,
+        penanggungJawab: document.getElementById('editPenanggungJawab').value,
+        tools: document.getElementById('editTools').value
+      }
+    };
+
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        bootstrap.Modal.getInstance(document.getElementById('detailModal')).hide();
+        Swal.fire('Berhasil!', result.message, 'success');
+        loadRisksFromAPI();
+      } else {
+        Swal.fire('Gagal', result.message, 'error');
+      }
+    } catch (e) {
+      Swal.fire('Error', 'Gagal memperbarui data risiko.', 'error');
+    }
+  }
+
   async function simpanSemuaMonitoring() {
     const payload = {
       action: 'saveMonitoring',
@@ -579,31 +776,6 @@
       return item.risiko.toLowerCase().includes(search) || item.penyebab.toLowerCase().includes(search);
     });
     renderTable(filtered);
-  }
-
-  function showDetail(id) {
-    const item = riskData.find(r => r.id === id);
-    if (!item) return;
-
-    const content = `
-      <table class="table table-bordered">
-        <tr><th class="w-30 bg-light">Departemen</th><td>${item.dept}</td></tr>
-        <tr><th class="bg-light">Kategori Risiko</th><td>${item.kategori}</td></tr>
-        <tr><th class="bg-light">Risiko</th><td><b>${item.risiko}</b></td></tr>
-        <tr><th class="bg-light">Penyebab</th><td>${item.penyebab}</td></tr>
-        <tr><th class="bg-light">Bahaya</th><td>${item.bahaya}</td></tr>
-        <tr><th class="bg-light">Frekuensi / Dampak / Skor</th><td>${item.frekuensi} / ${item.dampak} / <b>${item.skor} (${item.warna})</b></td></tr>
-        <tr><th class="bg-light">Urutan Prioritas</th><td>${item.prioritas}</td></tr>
-        <tr><th class="bg-light">Rencana Strategi (Mitigasi)</th><td>${item.rencana}</td></tr>
-        <tr><th class="bg-light">Klasifikasi & Anggaran</th><td>${item.klasifikasi} | Rp ${Number(item.anggaran).toLocaleString()}</td></tr>
-        <tr><th class="bg-light">Target Waktu</th><td>${item.target}</td></tr>
-        <tr><th class="bg-light">Pelaksana / Penanggung Jawab</th><td>${item.pelaksana} / ${item.penanggungJawab}</td></tr>
-        <tr><th class="bg-light">Tools Digunakan</th><td>${item.tools}</td></tr>
-      </table>
-    `;
-
-    document.getElementById('detailModalContent').innerHTML = content;
-    new bootstrap.Modal(document.getElementById('detailModal')).show();
   }
 </script>
 </body>
