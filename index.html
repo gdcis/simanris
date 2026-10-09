@@ -98,18 +98,24 @@
 <!-- SECTION 2: DASHBOARD MAIN PAGE (RISK MANAGEMENT) -->
 <div id="mainDashboard" class="container-fluid my-4 px-4 d-none">
   
-  <!-- BAR INFORMASI USER & LOGOUT -->
-  <div class="card p-3 mb-4 bg-white">
-    <div class="d-flex justify-content-between align-items-center">
-      <div>
-        <span class="text-muted me-2">Selamat Datang,</span>
-        <strong id="userDisplayName" class="text-primary fs-6">User Name</strong>
-        <span class="badge bg-info text-dark ms-2" id="userDisplayDept">Departemen: -</span>
-        <span class="badge bg-secondary ms-1" id="userDisplayRole">User</span>
-      </div>
+<!-- BAR INFORMASI USER & LOGOUT -->
+<div class="card p-3 mb-4 bg-white">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <span class="text-muted me-2">Selamat Datang,</span>
+      <strong id="userDisplayName" class="text-primary fs-6">User Name</strong>
+      <span class="badge bg-info text-dark ms-2" id="userDisplayDept">Departemen: -</span>
+      <span class="badge bg-secondary ms-1" id="userDisplayRole">User</span>
+    </div>
+    <div>
+      <!-- Tombol ini hanya tampil jika role = Admin -->
+      <button id="btnAdminApproval" class="btn btn-warning btn-sm me-2 d-none" onclick="openApprovalModal()">
+        <i class="fa-solid fa-user-check me-1"></i> Persetujuan Akun <span id="pendingBadge" class="badge bg-danger ms-1"></span>
+      </button>
       <button class="btn btn-outline-danger btn-sm" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
     </div>
   </div>
+</div>
 
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -410,7 +416,7 @@
 
 <script>
   // SILAKAN GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT WEB APP ANDA
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxSQPSt8bqCb6aK29Oo-2T8aPJ3oKYEwEKfIEcfd6J8ANdOZp72NGciuFBk_9Qmtwe7/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBfv0_rxZzUGrBpOsHZt3xheVNLtbtJcBZLoaks7fFl8vj9ewk7Wnj6rhoD60Ygz7x/exec";
 
   let currentUser = null;
   let riskData = [];
@@ -498,16 +504,144 @@
     document.getElementById('authSection').classList.remove('d-none');
   }
 
+  // Tampilkan Dashboard & Cek Role Admin
   function showDashboard() {
-    document.getElementById('authSection').classList.add('d-none');
-    document.getElementById('mainDashboard').classList.remove('d-none');
+  document.getElementById('authSection').classList.add('d-none');
+  document.getElementById('mainDashboard').classList.remove('d-none');
 
-    document.getElementById('userDisplayName').innerText = currentUser.name;
-    document.getElementById('userDisplayDept').innerText = `Dept: ${currentUser.dept}`;
-    document.getElementById('userDisplayRole').innerText = currentUser.role;
+  document.getElementById('userDisplayName').innerText = currentUser.name;
+  document.getElementById('userDisplayDept').innerText = `Dept: ${currentUser.dept}`;
+  document.getElementById('userDisplayRole').innerText = currentUser.role;
 
-    loadRisksFromAPI();
+  // Jika Role = Admin, Tampilkan Tombol Persetujuan Akun
+  if (currentUser.role === 'Admin') {
+    document.getElementById('btnAdminApproval').classList.remove('d-none');
+    loadPendingUsersCount();
+  } else {
+    document.getElementById('btnAdminApproval').classList.add('d-none');
   }
+
+  loadRisksFromAPI();
+}
+
+// Ambil Jumlah Akun Pending untuk Badge Notifikasi
+async function loadPendingUsersCount() {
+  try {
+    const res = await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'getPendingUsers', email: currentUser.email })
+    });
+    const result = await res.json();
+    if (result.success) {
+      const count = result.data.length;
+      const badge = document.getElementById('pendingBadge');
+      if (count > 0) {
+        badge.innerText = count;
+        badge.classList.remove('d-none');
+      } else {
+        badge.classList.add('d-none');
+      }
+    }
+  } catch (err) {
+    console.error("Gagal memuat daftar pending user", err);
+  }
+}
+
+// Buka Modal Persetujuan Akun
+async function openApprovalModal() {
+  Swal.showLoading();
+  try {
+    const res = await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'getPendingUsers', email: currentUser.email })
+    });
+    const result = await res.json();
+    Swal.close();
+
+    if (result.success) {
+      renderPendingTable(result.data);
+      new bootstrap.Modal(document.getElementById('approvalModal')).show();
+    } else {
+      Swal.fire('Gagal', result.message, 'error');
+    }
+  } catch (err) {
+    Swal.fire('Error', 'Gagal memuat daftar user pending.', 'error');
+  }
+}
+
+// Render Tabel Pending User
+function renderPendingTable(users) {
+  const tbody = document.getElementById('pendingTableBody');
+  tbody.innerHTML = '';
+
+  if (users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Tidak ada akun baru yang menunggu persetujuan.</td></tr>';
+    return;
+  }
+
+  users.forEach((u, index) => {
+    let tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td><b>${u.name}</b></td>
+      <td>${u.email}</td>
+      <td><span class="badge bg-secondary">${u.dept}</span></td>
+      <td class="text-center">
+        <button class="btn btn-sm btn-success me-1" onclick="processUserStatus('${u.email}', 'Active')">
+          <i class="fa-solid fa-check me-1"></i> Accept
+        </button>
+        <button class="btn btn-sm btn-danger" onclick="processUserStatus('${u.email}', 'Rejected')">
+          <i class="fa-solid fa-xmark me-1"></i> Reject
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Proses Persetujuan (Accept / Reject)
+async function processUserStatus(targetEmail, status) {
+  const actionText = status === 'Active' ? 'menyetujui' : 'menolak';
+  
+  const confirm = await Swal.fire({
+    title: 'Konfirmasi',
+    text: `Apakah Anda yakin ingin ${actionText} akun ${targetEmail}?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Proses',
+    cancelButtonText: 'Batal'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  Swal.showLoading();
+  try {
+    const res = await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ 
+        action: 'updateUserStatus', 
+        email: currentUser.email, 
+        targetEmail: targetEmail, 
+        status: status 
+      })
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      Swal.fire('Berhasil!', result.message, 'success');
+      // Refresh modal persetujuan & badge
+      openApprovalModal();
+      loadPendingUsersCount();
+    } else {
+      Swal.fire('Gagal', result.message, 'error');
+    }
+  } catch (err) {
+    Swal.fire('Error', 'Gagal memproses status pengguna.', 'error');
+  }
+}
 
   async function loadRisksFromAPI() {
     Swal.showLoading();
@@ -814,5 +948,34 @@
     new bootstrap.Modal(document.getElementById('detailModal')).show();
   }
 </script>
+  <!-- MODAL PERSETUJUAN AKUN (ADMIN ONLY) -->
+<div class="modal fade" id="approvalModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title"><i class="fa-solid fa-user-clock me-2"></i>Persetujuan Akun Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-hover table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>No</th>
+                <th>Nama Lengkap</th>
+                <th>Email</th>
+                <th>Departemen</th>
+                <th class="text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="pendingTableBody">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
