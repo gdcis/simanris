@@ -505,6 +505,8 @@
             <div class="mb-3">
               <label class="form-label fw-semibold">Upload File Bukti / Penjelasan (.pdf, .jpg, .png)</label>
               <input type="file" id="evalFileInput" class="form-control" accept=".pdf, image/*">
+              <!-- Elemen penampung link file yang sudah ada -->
+              <div id="evalFileLinkContainer"></div>
               <small class="text-muted">* File akan disimpan otomatis di Google Drive pemilik aplikasi</small>
             </div>
           </div>
@@ -533,7 +535,7 @@
 
 <script>
   // SILAKAN GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT WEB APP ANDA
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxwRFQO8YUjMebZABoZimT80kL_YNWTz7Ja8mxe-3RK-LXXtndJCQ1CK6mTXIWyjPdI/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzMLCnNNA0040n0Cun2hhCqsBMInLsE2IPQzE9klCotM4rhMJEcotA8zt4vqgg3PhYV/exec";
 
   let currentUser = null;
   let riskData = [];
@@ -1068,19 +1070,53 @@ async function processUserStatus(targetEmail, status) {
     new bootstrap.Modal(document.getElementById('detailModal')).show();
   }
 
-  // Buka Modal Evaluasi
+  // Buka Modal Evaluasi & Tampilkan Data Yang Pernah Diinput
 function openEvaluasiModal(id) {
   const item = riskData.find(r => r.id === id);
   if (!item) return;
 
+  // 1. Set Identitas Risiko
   document.getElementById('evalRiskId').value = item.id;
   document.getElementById('evalRiskTitle').innerText = item.risiko;
   document.getElementById('evalRiskDept').innerText = item.dept;
   document.getElementById('evalRiskKategori').innerText = item.kategori;
 
+  // 2. Reset Form
   document.getElementById('formEvaluasi').reset();
+
+  // 3. Isi Form Jika Data Evaluasi Sudah Ada
+  const ev = item.evaluasi || {};
+  if (ev.bulan) document.getElementById('evalBulan').value = ev.bulan;
+  if (ev.adaKejadian) document.getElementById('evalAdaKejadian').value = ev.adaKejadian;
+
+  document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
+  document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
+  if (ev.klasifikasiBaru) document.getElementById('evalKlasifikasiBaru').value = ev.klasifikasiBaru;
+  document.getElementById('evalAnggaranBaru').value = ev.anggaranBaru || 0;
+  document.getElementById('evalTargetBaru').value = ev.targetBaru || '';
+  document.getElementById('evalPelaksanaBaru').value = ev.pelaksanaBaru || '';
+  document.getElementById('evalPJBaru').value = ev.pjBaru || '';
+  document.getElementById('evalEfektifJikaTidak').value = ev.efektifJikaTidak || '';
+
+  // 4. Tampilkan Link File Bukti (Jika Ada File Terupload)
+  const fileContainer = document.getElementById('evalFileLinkContainer');
+  if (fileContainer) {
+    if (ev.fileUrl) {
+      fileContainer.innerHTML = `
+        <div class="mt-2 text-success">
+          <i class="fa-solid fa-file-circle-check me-1"></i> Bukti tersimpan: 
+          <a href="${ev.fileUrl}" target="_blank" class="fw-bold text-decoration-underline">Lihat / Download File Bukti</a>
+        </div>
+      `;
+    } else {
+      fileContainer.innerHTML = '';
+    }
+  }
+
+  // 5. Adjust Tampilan Form (Tampilkan Section Sesuai Option 'Ada Kejadian')
   toggleEvalFormFields();
 
+  // 6. Tampilkan Modal
   new bootstrap.Modal(document.getElementById('evaluasiModal')).show();
 }
 
