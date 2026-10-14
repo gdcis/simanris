@@ -432,7 +432,7 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label fw-semibold">Pilih Bulan Evaluasi</label>
-              <select id="evalBulan" class="form-select" required>
+              <select id="evalBulan" class="form-select" onchange="loadEvaluationForSelectedMonth()" required>
                 <option value="Jan">Januari</option>
                 <option value="Feb">Februari</option>
                 <option value="Mar">Maret</option>
@@ -534,7 +534,7 @@
 
 <script>
   // SILAKAN GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT WEB APP ANDA
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzMLCnNNA0040n0Cun2hhCqsBMInLsE2IPQzE9klCotM4rhMJEcotA8zt4vqgg3PhYV/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyT-eBEr28NZNga7cgvOc_Ecbhl3eU7lgX_pSaE_5je_PENRqO_5aVfOkXbwJc9anBZ/exec";
 
   let currentUser = null;
   let riskData = [];
@@ -1069,54 +1069,69 @@ async function processUserStatus(targetEmail, status) {
     new bootstrap.Modal(document.getElementById('detailModal')).show();
   }
 
-  // Buka Modal Evaluasi & Tampilkan Data Yang Pernah Diinput
-function openEvaluasiModal(id) {
+  let currentRiskEvaluations = [];
+
+// Membuka Modal Evaluasi & Mengambil Semua Data Evaluasi Risiko Ini
+async function openEvaluasiModal(id) {
   const item = riskData.find(r => r.id === id);
   if (!item) return;
 
-  // 1. Set Identitas Risiko
   document.getElementById('evalRiskId').value = item.id;
   document.getElementById('evalRiskTitle').innerText = item.risiko;
   document.getElementById('evalRiskDept').innerText = item.dept;
   document.getElementById('evalRiskKategori').innerText = item.kategori;
 
-  // 2. Reset Form
-  document.getElementById('formEvaluasi').reset();
+  Swal.showLoading();
+  try {
+    const res = await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'getEvaluations', riskId: item.id, email: currentUser.email })
+    });
+    const result = await res.json();
+    Swal.close();
 
-  // 3. Isi Form Jika Data Evaluasi Sudah Ada
-  const ev = item.evaluasi || {};
-  if (ev.bulan) document.getElementById('evalBulan').value = ev.bulan;
-  if (ev.adaKejadian) document.getElementById('evalAdaKejadian').value = ev.adaKejadian;
+    if (result.success) {
+      currentRiskEvaluations = result.data || [];
+      loadEvaluationForSelectedMonth(); // Tampilkan data sesuai bulan yang sedang dipilih
+      new bootstrap.Modal(document.getElementById('evaluasiModal')).show();
+    } else {
+      Swal.fire('Error', result.message, 'error');
+    }
+  } catch (err) {
+    Swal.fire('Error', 'Gagal memuat histori evaluasi.', 'error');
+  }
+}
 
+// Fungsi Otomatis Saat Dropdown Bulan Diubah
+function loadEvaluationForSelectedMonth() {
+  const selectedMonth = document.getElementById('evalBulan').value;
+  const ev = currentRiskEvaluations.find(e => e.bulan === selectedMonth) || {};
+
+  document.getElementById('evalAdaKejadian').value = ev.adaKejadian || '';
   document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
   document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
-  if (ev.klasifikasiBaru) document.getElementById('evalKlasifikasiBaru').value = ev.klasifikasiBaru;
+  document.getElementById('evalKlasifikasiBaru').value = ev.klasifikasiBaru || 'Administratif - Preventif';
   document.getElementById('evalAnggaranBaru').value = ev.anggaranBaru || 0;
   document.getElementById('evalTargetBaru').value = ev.targetBaru || '';
   document.getElementById('evalPelaksanaBaru').value = ev.pelaksanaBaru || '';
   document.getElementById('evalPJBaru').value = ev.pjBaru || '';
   document.getElementById('evalEfektifJikaTidak').value = ev.efektifJikaTidak || '';
 
-  // 4. Tampilkan Link File Bukti (Jika Ada File Terupload)
   const fileContainer = document.getElementById('evalFileLinkContainer');
   if (fileContainer) {
     if (ev.fileUrl) {
       fileContainer.innerHTML = `
         <div class="mt-2 text-success">
-          <i class="fa-solid fa-file-circle-check me-1"></i> Bukti tersimpan: 
+          <i class="fa-solid fa-file-circle-check me-1"></i> Bukti tersimpan (${ev.bulan}): 
           <a href="${ev.fileUrl}" target="_blank" class="fw-bold text-decoration-underline">Lihat / Download File Bukti</a>
-        </div>
-      `;
+        </div>`;
     } else {
       fileContainer.innerHTML = '';
     }
   }
 
-  // 5. Adjust Tampilan Form (Tampilkan Section Sesuai Option 'Ada Kejadian')
   toggleEvalFormFields();
-
-  // 6. Tampilkan Modal
-  new bootstrap.Modal(document.getElementById('evaluasiModal')).show();
 }
 
 // Toggle Tampilan Form berdasarkan 'Ada Kejadian'
