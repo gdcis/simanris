@@ -138,6 +138,15 @@
     </div>
   </div>
 
+  <div class="col-md-3">
+  <label class="form-label fw-semibold">Pilih Tahun</label>
+  <select id="filterTahun" class="form-select" onchange="loadRisksFromAPI()">
+    <option value="2026" selected>2026</option>
+    <option value="2027">2027</option>
+    <option value="2028">2028</option>
+  </select>
+</div>
+  
   <!-- Tabel Utama -->
   <div class="card p-3">
     <div class="table-container">
@@ -177,6 +186,14 @@
         <form id="formAddRisk">
           <div class="form-section-title"><i class="fa-solid fa-align-left me-1"></i> 1. IDENTIFIKASI RISIKO</div>
           <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Tahun Anggaran/Risiko</label>
+              <select id="addTahun" class="form-select" required>
+                <option value="2026">2026</option>
+                <option value="2027" selected>2027</option>
+                <option value="2028">2028</option>
+              </select>
+            </div>
             <div class="col-md-3">
               <label class="form-label fw-semibold">Departemen / Divisi</label>
               <input type="text" id="addDept" class="form-control bg-light" readonly>
@@ -534,7 +551,7 @@
 
 <script>
   // SILAKAN GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT WEB APP ANDA
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyT-eBEr28NZNga7cgvOc_Ecbhl3eU7lgX_pSaE_5je_PENRqO_5aVfOkXbwJc9anBZ/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxGHGoi4DQ_MIvPpae3K-TZpHaELqbWt0JBp_6CfoBXR1a663LrBvKFXhaei_rl68Rb/exec";
 
   let currentUser = null;
   let riskData = [];
@@ -762,13 +779,14 @@ async function processUserStatus(targetEmail, status) {
 }
 
   async function loadRisksFromAPI() {
+    const selectedYear = document.getElementById('filterTahun').value;
     Swal.showLoading();
     try {
       const res = await fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'getRisks', email: currentUser.email })
-      });
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'getRisks', email: currentUser.email, tahun: selectedYear })
+    });
       const result = await res.json();
 
       if (result.success) {
@@ -919,6 +937,7 @@ async function processUserStatus(targetEmail, status) {
       action: 'addRisk',
       email: currentUser.email,
       data: {
+        tahun: document.getElementById('addTahun').value
         dept: currentUser.dept,
         kategori: document.getElementById('addKategori').value,
         risiko: document.getElementById('addRisiko').value,
@@ -1076,6 +1095,7 @@ async function openEvaluasiModal(id) {
   const item = riskData.find(r => r.id === id);
   if (!item) return;
 
+  tahun: document.getElementById('filterTahun').value
   document.getElementById('evalRiskId').value = item.id;
   document.getElementById('evalRiskTitle').innerText = item.risiko;
   document.getElementById('evalRiskDept').innerText = item.dept;
