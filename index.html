@@ -551,10 +551,11 @@
 
 <script>
   // SILAKAN GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT WEB APP ANDA
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxGHGoi4DQ_MIvPpae3K-TZpHaELqbWt0JBp_6CfoBXR1a663LrBvKFXhaei_rl68Rb/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxqd5HgORVnvvZ-we_RObfrlbhcU9efw2cpGplDopC4Bqz6-ckZ-YPpGJ6qUjwoIn13/exec";
 
   let currentUser = null;
   let riskData = [];
+  let currentRiskEvaluations = [];
   const months = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -639,154 +640,146 @@
     document.getElementById('authSection').classList.remove('d-none');
   }
 
-  // Tampilkan Dashboard & Cek Role Admin
   function showDashboard() {
-  document.getElementById('authSection').classList.add('d-none');
-  document.getElementById('mainDashboard').classList.remove('d-none');
+    document.getElementById('authSection').classList.add('d-none');
+    document.getElementById('mainDashboard').classList.remove('d-none');
 
-  document.getElementById('userDisplayName').innerText = currentUser.name;
-  document.getElementById('userDisplayDept').innerText = `Dept: ${currentUser.dept}`;
-  document.getElementById('userDisplayRole').innerText = currentUser.role;
+    document.getElementById('userDisplayName').innerText = currentUser.name;
+    document.getElementById('userDisplayDept').innerText = `Dept: ${currentUser.dept}`;
+    document.getElementById('userDisplayRole').innerText = currentUser.role;
 
-  // Jika Role = Admin, Tampilkan Tombol Persetujuan Akun
-  if (currentUser.role === 'Admin') {
-    document.getElementById('btnAdminApproval').classList.remove('d-none');
-    loadPendingUsersCount();
-  } else {
-    document.getElementById('btnAdminApproval').classList.add('d-none');
-  }
-
-  loadRisksFromAPI();
-}
-
-// Ambil Jumlah Akun Pending untuk Badge Notifikasi
-async function loadPendingUsersCount() {
-  try {
-    const res = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'getPendingUsers', email: currentUser.email })
-    });
-    const result = await res.json();
-    if (result.success) {
-      const count = result.data.length;
-      const badge = document.getElementById('pendingBadge');
-      if (count > 0) {
-        badge.innerText = count;
-        badge.classList.remove('d-none');
-      } else {
-        badge.classList.add('d-none');
-      }
-    }
-  } catch (err) {
-    console.error("Gagal memuat daftar pending user", err);
-  }
-}
-
-// Buka Modal Persetujuan Akun
-async function openApprovalModal() {
-  Swal.showLoading();
-  try {
-    const res = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'getPendingUsers', email: currentUser.email })
-    });
-    const result = await res.json();
-    Swal.close();
-
-    if (result.success) {
-      renderPendingTable(result.data);
-      new bootstrap.Modal(document.getElementById('approvalModal')).show();
-    } else {
-      Swal.fire('Gagal', result.message, 'error');
-    }
-  } catch (err) {
-    Swal.fire('Error', 'Gagal memuat daftar user pending.', 'error');
-  }
-}
-
-// Render Tabel Pending User
-function renderPendingTable(users) {
-  const tbody = document.getElementById('pendingTableBody');
-  tbody.innerHTML = '';
-
-  if (users.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Tidak ada akun baru yang menunggu persetujuan.</td></tr>';
-    return;
-  }
-
-  users.forEach((u, index) => {
-    let tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td><b>${u.name}</b></td>
-      <td>${u.email}</td>
-      <td><span class="badge bg-secondary">${u.dept}</span></td>
-      <td class="text-center">
-        <button class="btn btn-sm btn-success me-1" onclick="processUserStatus('${u.email}', 'Active')">
-          <i class="fa-solid fa-check me-1"></i> Accept
-        </button>
-        <button class="btn btn-sm btn-danger" onclick="processUserStatus('${u.email}', 'Rejected')">
-          <i class="fa-solid fa-xmark me-1"></i> Reject
-        </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-// Proses Persetujuan (Accept / Reject)
-async function processUserStatus(targetEmail, status) {
-  const actionText = status === 'Active' ? 'menyetujui' : 'menolak';
-  
-  const confirm = await Swal.fire({
-    title: 'Konfirmasi',
-    text: `Apakah Anda yakin ingin ${actionText} akun ${targetEmail}?`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Ya, Proses',
-    cancelButtonText: 'Batal'
-  });
-
-  if (!confirm.isConfirmed) return;
-
-  Swal.showLoading();
-  try {
-    const res = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ 
-        action: 'updateUserStatus', 
-        email: currentUser.email, 
-        targetEmail: targetEmail, 
-        status: status 
-      })
-    });
-    const result = await res.json();
-
-    if (result.success) {
-      Swal.fire('Berhasil!', result.message, 'success');
-      // Refresh modal persetujuan & badge
-      openApprovalModal();
+    if (currentUser.role === 'Admin') {
+      document.getElementById('btnAdminApproval').classList.remove('d-none');
       loadPendingUsersCount();
     } else {
-      Swal.fire('Gagal', result.message, 'error');
+      document.getElementById('btnAdminApproval').classList.add('d-none');
     }
-  } catch (err) {
-    Swal.fire('Error', 'Gagal memproses status pengguna.', 'error');
+
+    loadRisksFromAPI();
   }
-}
+
+  async function loadPendingUsersCount() {
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getPendingUsers', email: currentUser.email })
+      });
+      const result = await res.json();
+      if (result.success) {
+        const count = result.data.length;
+        const badge = document.getElementById('pendingBadge');
+        if (count > 0) {
+          badge.innerText = count;
+          badge.classList.remove('d-none');
+        } else {
+          badge.classList.add('d-none');
+        }
+      }
+    } catch (err) {
+      console.error("Gagal memuat daftar pending user", err);
+    }
+  }
+
+  async function openApprovalModal() {
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getPendingUsers', email: currentUser.email })
+      });
+      const result = await res.json();
+      Swal.close();
+
+      if (result.success) {
+        renderPendingTable(result.data);
+        new bootstrap.Modal(document.getElementById('approvalModal')).show();
+      } else {
+        Swal.fire('Gagal', result.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal memuat daftar user pending.', 'error');
+    }
+  }
+
+  function renderPendingTable(users) {
+    const tbody = document.getElementById('pendingTableBody');
+    tbody.innerHTML = '';
+
+    if (users.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Tidak ada akun baru yang menunggu persetujuan.</td></tr>';
+      return;
+    }
+
+    users.forEach((u, index) => {
+      let tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td><b>${u.name}</b></td>
+        <td>${u.email}</td>
+        <td><span class="badge bg-secondary">${u.dept}</span></td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-success me-1" onclick="processUserStatus('${u.email}', 'Active')">
+            <i class="fa-solid fa-check me-1"></i> Accept
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="processUserStatus('${u.email}', 'Rejected')">
+            <i class="fa-solid fa-xmark me-1"></i> Reject
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function processUserStatus(targetEmail, status) {
+    const actionText = status === 'Active' ? 'menyetujui' : 'menolak';
+    const confirm = await Swal.fire({
+      title: 'Konfirmasi',
+      text: `Apakah Anda yakin ingin ${actionText} akun ${targetEmail}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Proses',
+      cancelButtonText: 'Batal'
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ 
+          action: 'updateUserStatus', 
+          email: currentUser.email, 
+          targetEmail: targetEmail, 
+          status: status 
+        })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        Swal.fire('Berhasil!', result.message, 'success');
+        openApprovalModal();
+        loadPendingUsersCount();
+      } else {
+        Swal.fire('Gagal', result.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal memproses status pengguna.', 'error');
+    }
+  }
 
   async function loadRisksFromAPI() {
     const selectedYear = document.getElementById('filterTahun').value;
     Swal.showLoading();
     try {
       const res = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'getRisks', email: currentUser.email, tahun: selectedYear })
-    });
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getRisks', email: currentUser.email, tahun: selectedYear })
+      });
       const result = await res.json();
 
       if (result.success) {
@@ -825,7 +818,6 @@ async function processUserStatus(targetEmail, status) {
         </td>
       `).join('');
 
-      // Cek Hak Akses Edit: Admin atau Dept yang Sesuai
       const canEdit = currentUser.role === 'Admin' || item.dept.toLowerCase() === currentUser.dept.toLowerCase();
 
       let tr = document.createElement('tr');
@@ -843,10 +835,10 @@ async function processUserStatus(targetEmail, status) {
           <button class="btn btn-sm btn-info text-white me-1" onclick="showDetail(${item.id})" title="Detail Parameter">
             <i class="fa-solid fa-eye"></i>
           </button>
-          <button class="btn btn-sm btn-warning text-dark" onclick="openEditRiskModal(${item.id})" title="Edit Detail Risiko" ${!canEdit ? 'disabled' : ''}>
+          <button class="btn btn-sm btn-warning text-dark me-1" onclick="openEditRiskModal(${item.id})" title="Edit Detail Risiko" ${!canEdit ? 'disabled' : ''}>
             <i class="fa-solid fa-pen"></i>
           </button>
-          <button class="btn btn-sm btn-primary text-white me-1" onclick="openEvaluasiModal(${item.id})" title="Evaluasi & Review Bulanan">
+          <button class="btn btn-sm btn-primary text-white" onclick="openEvaluasiModal(${item.id})" title="Evaluasi & Review Bulanan">
             <i class="fa-solid fa-clipboard-check"></i>
           </button>
         </td>
@@ -869,12 +861,10 @@ async function processUserStatus(targetEmail, status) {
     new bootstrap.Modal(document.getElementById('addRiskModal')).show();
   }
 
-  // Fungsi Pembuka Modal Edit Risiko
   function openEditRiskModal(id) {
     const item = riskData.find(r => r.id === id);
     if (!item) return;
 
-    // Proteksi Otorisasi di Sisi Frontend
     if (currentUser.role !== 'Admin' && item.dept.toLowerCase() !== currentUser.dept.toLowerCase()) {
       Swal.fire('Akses Ditolak', 'Anda hanya dapat mengedit risiko dari departemen Anda sendiri.', 'warning');
       return;
@@ -933,11 +923,12 @@ async function processUserStatus(targetEmail, status) {
       return;
     }
 
+    // FIX: Menambahkan koma yang hilang
     const payload = {
       action: 'addRisk',
       email: currentUser.email,
       data: {
-        tahun: document.getElementById('addTahun').value
+        tahun: document.getElementById('addTahun').value,
         dept: currentUser.dept,
         kategori: document.getElementById('addKategori').value,
         risiko: document.getElementById('addRisiko').value,
@@ -977,7 +968,6 @@ async function processUserStatus(targetEmail, status) {
     }
   }
 
-  // Fungsi Menyimpan Perubahan Edit Risiko
   async function saveUpdatedRisk() {
     const form = document.getElementById('formEditRisk');
     if (!form.checkValidity()) {
@@ -1088,168 +1078,160 @@ async function processUserStatus(targetEmail, status) {
     new bootstrap.Modal(document.getElementById('detailModal')).show();
   }
 
-  let currentRiskEvaluations = [];
+  async function openEvaluasiModal(id) {
+    const item = riskData.find(r => r.id === id);
+    if (!item) return;
 
-// Membuka Modal Evaluasi & Mengambil Semua Data Evaluasi Risiko Ini
-async function openEvaluasiModal(id) {
-  const item = riskData.find(r => r.id === id);
-  if (!item) return;
+    const selectedYear = document.getElementById('filterTahun').value;
+    document.getElementById('evalRiskId').value = item.id;
+    document.getElementById('evalRiskTitle').innerText = item.risiko;
+    document.getElementById('evalRiskDept').innerText = item.dept;
+    document.getElementById('evalRiskKategori').innerText = item.kategori;
 
-  tahun: document.getElementById('filterTahun').value
-  document.getElementById('evalRiskId').value = item.id;
-  document.getElementById('evalRiskTitle').innerText = item.risiko;
-  document.getElementById('evalRiskDept').innerText = item.dept;
-  document.getElementById('evalRiskKategori').innerText = item.kategori;
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getEvaluations', riskId: item.id, tahun: selectedYear, email: currentUser.email })
+      });
+      const result = await res.json();
+      Swal.close();
 
-  Swal.showLoading();
-  try {
-    const res = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'getEvaluations', riskId: item.id, email: currentUser.email })
-    });
-    const result = await res.json();
-    Swal.close();
-
-    if (result.success) {
-      currentRiskEvaluations = result.data || [];
-      loadEvaluationForSelectedMonth(); // Tampilkan data sesuai bulan yang sedang dipilih
-      new bootstrap.Modal(document.getElementById('evaluasiModal')).show();
-    } else {
-      Swal.fire('Error', result.message, 'error');
-    }
-  } catch (err) {
-    Swal.fire('Error', 'Gagal memuat histori evaluasi.', 'error');
-  }
-}
-
-// Fungsi Otomatis Saat Dropdown Bulan Diubah
-function loadEvaluationForSelectedMonth() {
-  const selectedMonth = document.getElementById('evalBulan').value;
-  const ev = currentRiskEvaluations.find(e => e.bulan === selectedMonth) || {};
-
-  document.getElementById('evalAdaKejadian').value = ev.adaKejadian || '';
-  document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
-  document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
-  document.getElementById('evalKlasifikasiBaru').value = ev.klasifikasiBaru || 'Administratif - Preventif';
-  document.getElementById('evalAnggaranBaru').value = ev.anggaranBaru || 0;
-  document.getElementById('evalTargetBaru').value = ev.targetBaru || '';
-  document.getElementById('evalPelaksanaBaru').value = ev.pelaksanaBaru || '';
-  document.getElementById('evalPJBaru').value = ev.pjBaru || '';
-  document.getElementById('evalEfektifJikaTidak').value = ev.efektifJikaTidak || '';
-
-  const fileContainer = document.getElementById('evalFileLinkContainer');
-  if (fileContainer) {
-    if (ev.fileUrl) {
-      fileContainer.innerHTML = `
-        <div class="mt-2 text-success">
-          <i class="fa-solid fa-file-circle-check me-1"></i> Bukti tersimpan (${ev.bulan}): 
-          <a href="${ev.fileUrl}" target="_blank" class="fw-bold text-decoration-underline">Lihat / Download File Bukti</a>
-        </div>`;
-    } else {
-      fileContainer.innerHTML = '';
+      if (result.success) {
+        currentRiskEvaluations = result.data || [];
+        loadEvaluationForSelectedMonth();
+        new bootstrap.Modal(document.getElementById('evaluasiModal')).show();
+      } else {
+        Swal.fire('Error', result.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal memuat histori evaluasi.', 'error');
     }
   }
 
-  toggleEvalFormFields();
-}
+  function loadEvaluationForSelectedMonth() {
+    const selectedMonth = document.getElementById('evalBulan').value;
+    const ev = currentRiskEvaluations.find(e => e.bulan === selectedMonth) || {};
 
-// Toggle Tampilan Form berdasarkan 'Ada Kejadian'
-function toggleEvalFormFields() {
-  const adaKejadian = document.getElementById('evalAdaKejadian').value;
-  const secYa = document.getElementById('sectionAdaKejadian');
-  const secTidak = document.getElementById('sectionTidakAdaKejadian');
+    document.getElementById('evalAdaKejadian').value = ev.adaKejadian || '';
+    document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
+    document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
+    document.getElementById('evalKlasifikasiBaru').value = ev.klasifikasiBaru || 'Administratif - Preventif';
+    document.getElementById('evalAnggaranBaru').value = ev.anggaranBaru || 0;
+    document.getElementById('evalTargetBaru').value = ev.targetBaru || '';
+    document.getElementById('evalPelaksanaBaru').value = ev.pelaksanaBaru || '';
+    document.getElementById('evalPJBaru').value = ev.pjBaru || '';
+    document.getElementById('evalEfektifJikaTidak').value = ev.efektifJikaTidak || '';
 
-  if (adaKejadian === 'Ya') {
-    secYa.classList.remove('d-none');
-    secTidak.classList.add('d-none');
-  } else if (adaKejadian === 'Tidak') {
-    secTidak.classList.remove('d-none');
-    secYa.classList.add('d-none');
-  } else {
-    secYa.classList.add('d-none');
-    secTidak.classList.add('d-none');
+    const fileContainer = document.getElementById('evalFileLinkContainer');
+    if (fileContainer) {
+      if (ev.fileUrl) {
+        fileContainer.innerHTML = `
+          <div class="mt-2 text-success">
+            <i class="fa-solid fa-file-circle-check me-1"></i> Bukti tersimpan (${ev.bulan}): 
+            <a href="${ev.fileUrl}" target="_blank" class="fw-bold text-decoration-underline">Lihat / Download File Bukti</a>
+          </div>`;
+      } else {
+        fileContainer.innerHTML = '';
+      }
+    }
+
+    toggleEvalFormFields();
   }
-}
 
-// Simpan Evaluasi & Upload File
-async function saveEvaluasiRisk() {
-  const form = document.getElementById('formEvaluasi');
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
+  function toggleEvalFormFields() {
+    const adaKejadian = document.getElementById('evalAdaKejadian').value;
+    const secYa = document.getElementById('sectionAdaKejadian');
+    const secTidak = document.getElementById('sectionTidakAdaKejadian');
+
+    if (adaKejadian === 'Ya') {
+      secYa.classList.remove('d-none');
+      secTidak.classList.add('d-none');
+    } else if (adaKejadian === 'Tidak') {
+      secTidak.classList.remove('d-none');
+      secYa.classList.add('d-none');
+    } else {
+      secYa.classList.add('d-none');
+      secTidak.classList.add('d-none');
+    }
   }
 
-  const riskId = document.getElementById('evalRiskId').value;
-  const bulan = document.getElementById('evalBulan').value;
-  const adaKejadian = document.getElementById('evalAdaKejadian').value;
-  const fileInput = document.getElementById('evalFileInput').files[0];
-
-  let fileData = null, fileName = null, mimeType = null;
-
-  // Pembacaan file ke Base64 jika diupload
-  if (fileInput) {
-    if (fileInput.size > 10 * 1024 * 1024) { // Maksimal 10MB
-      Swal.fire('File Terlalu Besar', 'Ukuran file maksimal adalah 10 MB.', 'warning');
+  async function saveEvaluasiRisk() {
+    const form = document.getElementById('formEvaluasi');
+    if (!form.checkValidity()) {
+      form.reportValidity();
       return;
     }
-    fileData = await readFileAsBase64(fileInput);
-    fileName = fileInput.name;
-    mimeType = fileInput.type;
+
+    const riskId = document.getElementById('evalRiskId').value;
+    const bulan = document.getElementById('evalBulan').value;
+    const selectedYear = document.getElementById('filterTahun').value;
+    const fileInput = document.getElementById('evalFileInput').files[0];
+
+    let fileData = null, fileName = null, mimeType = null;
+
+    if (fileInput) {
+      if (fileInput.size > 10 * 1024 * 1024) {
+        Swal.fire('File Terlalu Besar', 'Ukuran file maksimal adalah 10 MB.', 'warning');
+        return;
+      }
+      fileData = await readFileAsBase64(fileInput);
+      fileName = fileInput.name;
+      mimeType = fileInput.type;
+    }
+
+    const payload = {
+      action: 'saveEvaluasiRisk',
+      email: currentUser.email,
+      data: {
+        id: parseInt(riskId),
+        tahun: selectedYear,
+        bulan: bulan,
+        adaKejadian: document.getElementById('evalAdaKejadian').value,
+        analisisPenyebab: document.getElementById('evalAnalisisPenyebab').value,
+        mitigasiBaru: document.getElementById('evalMitigasiBaru').value,
+        klasifikasiBaru: document.getElementById('evalKlasifikasiBaru').value,
+        anggaranBaru: parseInt(document.getElementById('evalAnggaranBaru').value) || 0,
+        targetBaru: document.getElementById('evalTargetBaru').value,
+        pelaksanaBaru: document.getElementById('evalPelaksanaBaru').value,
+        pjBaru: document.getElementById('evalPJBaru').value,
+        efektifJikaTidak: document.getElementById('evalEfektifJikaTidak').value,
+        fileData: fileData,
+        fileName: fileName,
+        mimeType: mimeType
+      }
+    };
+
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        bootstrap.Modal.getInstance(document.getElementById('evaluasiModal')).hide();
+        Swal.fire('Berhasil!', result.message, 'success');
+        loadRisksFromAPI();
+      } else {
+        Swal.fire('Gagal', result.message, 'error');
+      }
+    } catch (e) {
+      Swal.fire('Error', 'Gagal mengirim data evaluasi.', 'error');
+    }
   }
 
-  const payload = {
-    action: 'saveEvaluasiRisk',
-    email: currentUser.email,
-    data: {
-      id: parseInt(riskId),
-      bulan: bulan,
-      adaKejadian: adaKejadian,
-      analisisPenyebab: document.getElementById('evalAnalisisPenyebab').value,
-      mitigasiBaru: document.getElementById('evalMitigasiBaru').value,
-      klasifikasiBaru: document.getElementById('evalKlasifikasiBaru').value,
-      anggaranBaru: parseInt(document.getElementById('evalAnggaranBaru').value) || 0,
-      targetBaru: document.getElementById('evalTargetBaru').value,
-      pelaksanaBaru: document.getElementById('evalPelaksanaBaru').value,
-      pjBaru: document.getElementById('evalPJBaru').value,
-      efektifJikaTidak: document.getElementById('evalEfektifJikaTidak').value,
-      fileData: fileData,
-      fileName: fileName,
-      mimeType: mimeType
-    }
-  };
-
-  Swal.showLoading();
-  try {
-    const res = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
+  function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(file);
     });
-    const result = await res.json();
-
-    if (result.success) {
-      bootstrap.Modal.getInstance(document.getElementById('evaluasiModal')).hide();
-      Swal.fire('Berhasil!', result.message, 'success');
-      loadRisksFromAPI();
-    } else {
-      Swal.fire('Gagal', result.message, 'error');
-    }
-  } catch (e) {
-    Swal.fire('Error', 'Gagal mengirim data evaluasi.', 'error');
   }
-}
-
-// Helper pembaca file sebagai Base64
-function readFileAsBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-    reader.readAsDataURL(file);
-  });
-}
-  
 </script>
   <!-- MODAL PERSETUJUAN AKUN (ADMIN ONLY) -->
 <div class="modal fade" id="approvalModal" tabindex="-1">
