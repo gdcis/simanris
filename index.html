@@ -15,24 +15,24 @@
     .badge-band-kuning { background-color: #ffc107; color: black; }
     .badge-band-oranye { background-color: #fd7e14; color: white; }
     .badge-band-merah { background-color: #dc3545; color: white; }
-    .month-input { width: 65px; text-align: center; }
+    .month-input { width: 60px; text-align: center; }
     .table th { vertical-align: middle; font-size: 0.82rem; text-transform: uppercase; }
     .table td { vertical-align: middle; font-size: 0.88rem; }
     .form-section-title { font-size: 0.95rem; font-weight: 700; color: #0d6efd; border-bottom: 2px solid #e9ecef; padding-bottom: 5px; margin-bottom: 15px; }
     .auth-container { max-width: 420px; margin: 80px auto; }
     .d-none { display: none !important; }
+    .nav-tabs .nav-link { font-weight: 600; color: #495057; }
+    .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; }
   </style>
 </head>
 <body>
 
-<!-- SECTION 1: AUTHENTICATION (LOGIN & REGISTER) -->
+<!-- SECTION 1: AUTHENTICATION -->
 <div id="authSection" class="container">
   <div class="auth-container">
-    
-    <!-- CARD LOGIN -->
+    <!-- LOGIN CARD -->
     <div id="loginCard" class="card p-4">
       <div class="text-center mb-4">
-        <img src="assets/14 - LOGO baru tanpa kortex.png" alt="Granostic Logo" class="img-fluid mb-3" style="max-height: 50px; width: auto;">
         <h5 class="fw-bold text-primary mb-1">Risk Management Information System</h5>
         <p class="text-muted small">Silakan masuk ke akun Anda</p>
       </div>
@@ -52,7 +52,7 @@
       </div>
     </div>
 
-    <!-- CARD REGISTER -->
+    <!-- REGISTER CARD -->
     <div id="registerCard" class="card p-4 d-none">
       <div class="text-center mb-4">
         <h4 class="fw-bold text-success"><i class="fa-solid fa-user-plus me-2"></i>Registrasi User</h4>
@@ -68,7 +68,7 @@
           <input type="email" id="regEmail" class="form-control" placeholder="nama@domain.com" required>
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Departemen / Divisi</label>
+          <label class="form-label fw-semibold">Departemen</label>
           <select id="regDept" class="form-select" required>
             <option value="">-- Pilih Departemen --</option>
             <option value="CS">Customer Service</option>
@@ -79,6 +79,16 @@
             <option value="GA">General Affairs</option>
             <option value="IT">Information Technology</option>
             <option value="FINACC">Finance & Accounting</option>
+            <option value="MUTU">Tim Mutu</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Jabatan / Role</label>
+          <select id="regRole" class="form-select" required>
+            <option value="User">Karyawan / Staff (Input Monitoring)</option>
+            <option value="SPV">Supervisor (SPV)</option>
+            <option value="Manager">Manager</option>
+            <option value="Mutu">Tim Mutu (Validator)</option>
           </select>
         </div>
         <div class="mb-3">
@@ -91,90 +101,165 @@
         <small class="text-muted">Sudah punya akun? <a href="#" onclick="toggleAuthView('login')">Masuk di sini</a></small>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- SECTION 2: DASHBOARD MAIN PAGE (RISK MANAGEMENT) -->
+<!-- SECTION 2: DASHBOARD MAIN PAGE -->
 <div id="mainDashboard" class="container-fluid my-4 px-4 d-none">
   
-<!-- BAR INFORMASI USER & LOGOUT -->
-<div class="card p-3 mb-4 bg-white">
-  <div class="d-flex justify-content-between align-items-center">
-    <div>
-      <span class="text-muted me-2">Selamat Datang,</span>
-      <strong id="userDisplayName" class="text-primary fs-6">User Name</strong>
-      <span class="badge bg-info text-dark ms-2" id="userDisplayDept">Departemen: -</span>
-      <span class="badge bg-secondary ms-1" id="userDisplayRole">User</span>
-    </div>
-    <div>
-      <!-- Tombol ini hanya tampil jika role = Admin -->
-      <button id="btnAdminApproval" class="btn btn-warning btn-sm me-2 d-none" onclick="openApprovalModal()">
-        <i class="fa-solid fa-user-check me-1"></i> Persetujuan Akun <span id="pendingBadge" class="badge bg-danger ms-1"></span>
-      </button>
-      <button class="btn btn-outline-danger btn-sm" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
-    </div>
-  </div>
-</div>
-
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h3 class="fw-bold text-primary mb-1"><i class="fa-solid fa-shield-halved me-2"></i>Manajemen & Monitoring Risiko</h3>
-      <p class="text-muted mb-0">Monitoring dan mitigasi risiko khusus departemen Anda</p>
-    </div>
-    <div>
-      <button class="btn btn-success me-2" onclick="openAddRiskModal()"><i class="fa-solid fa-plus me-1"></i> Tambah Risiko</button>
-      <button class="btn btn-primary" onclick="simpanSemuaMonitoring()"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan</button>
-    </div>
-  </div>
-
-  <!-- Filter -->
-  <div class="card p-3 mb-4">
-    <div class="row g-3 align-items-center">
-      <div class="col-md-5">
-        <label class="form-label fw-semibold">Cari Risiko / Penyebab</label>
-        <input type="text" id="filterSearch" class="form-control" placeholder="Kata kunci..." onkeyup="filterTable()">
+  <!-- USER BAR -->
+  <div class="card p-3 mb-3 bg-white">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <span class="text-muted me-2">Selamat Datang,</span>
+        <strong id="userDisplayName" class="text-primary fs-6">User Name</strong>
+        <span class="badge bg-info text-dark ms-2" id="userDisplayDept">Dept: -</span>
+        <span class="badge bg-secondary ms-1" id="userDisplayRole">User</span>
+      </div>
+      <div>
+        <button id="btnAdminApproval" class="btn btn-warning btn-sm me-2 d-none" onclick="openApprovalModal()">
+          <i class="fa-solid fa-user-check me-1"></i> Persetujuan Akun <span id="pendingBadge" class="badge bg-danger ms-1"></span>
+        </button>
+        <button class="btn btn-outline-danger btn-sm" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
       </div>
     </div>
   </div>
 
-  <div class="col-md-3">
-  <label class="form-label fw-semibold">Pilih Tahun</label>
-  <select id="filterTahun" class="form-select" onchange="loadRisksFromAPI()">
-    <option value="2026" selected>2026</option>
-    <option value="2027">2027</option>
-    <option value="2028">2028</option>
-  </select>
-</div>
-  
-  <!-- Tabel Utama -->
-  <div class="card p-3">
-    <div class="table-container">
-      <table class="table table-hover table-bordered align-middle">
-        <thead class="table-dark text-center">
-          <tr>
-            <th rowspan="2" style="width: 40px;">No</th>
-            <th rowspan="2">Dept</th>
-            <th rowspan="2">Kategori & Risiko</th>
-            <th rowspan="2">Tools Yang Digunakan</th>
-            <th colspan="12">Monitoring Kejadian Risiko Bulanan</th>
-            <th rowspan="2" style="width: 100px;">Aksi</th>
-          </tr>
-          <tr>
-            <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
-            <th>Mei</th><th>Jun</th><th>Jul</th><th>Agu</th>
-            <th>Sep</th><th>Okt</th><th>Nov</th><th>Des</th>
-          </tr>
-        </thead>
-        <tbody id="riskTableBody">
-          <!-- Rendered by JS -->
-        </tbody>
-      </table>
+  <!-- NAVIGATION TABS -->
+  <ul class="nav nav-tabs mb-4" id="mainTab" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active" id="risks-tab" data-bs-toggle="tab" data-bs-target="#tabRisks" type="button"><i class="fa-solid fa-shield-halved me-2"></i>Manajemen & Monitoring Risiko</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#tabDashboard" type="button" onclick="loadIncidentDashboard()"><i class="fa-solid fa-chart-pie me-2"></i>Dashboard Kejadian & Evaluasi</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#tabAudit" type="button" onclick="loadAuditLogs()"><i class="fa-solid fa-clock-rotate-left me-2"></i>Audit Trails Log</button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="mainTabContent">
+    
+    <!-- TAB 1: MANAJEMEN RISIKO -->
+    <div class="tab-pane fade show active" id="tabRisks">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-primary mb-0">Daftar Register Risiko</h4>
+        <div>
+          <!-- KEBUTUHAN 1: Tombol Tambah hanya aktif utk Admin/SPV/Manager -->
+          <button id="btnAddRisk" class="btn btn-success me-2 d-none" onclick="openAddRiskModal()"><i class="fa-solid fa-plus me-1"></i> Tambah Risiko</button>
+          <button class="btn btn-primary" onclick="simpanSemuaMonitoring()"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Monitoring</button>
+        </div>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="card p-3 mb-4">
+        <div class="row g-3 align-items-center">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Cari Risiko / Penyebab</label>
+            <input type="text" id="filterSearch" class="form-control" placeholder="Kata kunci..." onkeyup="filterTable()">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Pilih Tahun</label>
+            <select id="filterTahun" class="form-select" onchange="loadRisksFromAPI()">
+              <option value="2026" selected>2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABEL RISIKO -->
+      <div class="card p-3">
+        <div class="table-container">
+          <table class="table table-hover table-bordered align-middle">
+            <thead class="table-dark text-center">
+              <tr>
+                <th rowspan="2" style="width: 30px;">No</th>
+                <th rowspan="2">Dept</th>
+                <th rowspan="2">Kategori & Risiko</th>
+                <th rowspan="2">Status Mutu</th>
+                <th colspan="12">Monitoring Kejadian Risiko Bulanan</th>
+                <th rowspan="2" style="width: 140px;">Aksi</th>
+              </tr>
+              <tr>
+                <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
+                <th>Mei</th><th>Jun</th><th>Jul</th><th>Agu</th>
+                <th>Sep</th><th>Okt</th><th>Nov</th><th>Des</th>
+              </tr>
+            </thead>
+            <tbody id="riskTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
+
+    <!-- TAB 2: DASHBOARD KEJADIAN (KEBUTUHAN 3) -->
+    <div class="tab-pane fade" id="tabDashboard">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-primary mb-0"><i class="fa-solid fa-triangle-exclamation me-2"></i>Dashboard Kejadian & Evaluasi Risiko</h4>
+        <button class="btn btn-outline-secondary btn-sm" onclick="loadIncidentDashboard()"><i class="fa-solid fa-rotate me-1"></i> Refresh</button>
+      </div>
+
+      <div class="card p-3">
+        <h6 class="fw-bold text-secondary mb-3">Daftar Risiko Yang Pernah Mengalami Kejadian</h6>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>No</th>
+                <th>Departemen</th>
+                <th>Uraian Risiko</th>
+                <th>Kategori</th>
+                <th>Level / Skor</th>
+                <th>Total Kejadian</th>
+                <th>Status Validasi Mutu</th>
+                <th>Progress Evaluasi</th>
+              </tr>
+            </thead>
+            <tbody id="incidentTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: AUDIT TRAILS (KEBUTUHAN 4) -->
+    <div class="tab-pane fade" id="tabAudit">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-primary mb-0"><i class="fa-solid fa-receipt me-2"></i>Audit Trails System Log</h4>
+        <button class="btn btn-outline-secondary btn-sm" onclick="loadAuditLogs()"><i class="fa-solid fa-rotate me-1"></i> Refresh Log</button>
+      </div>
+
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover table-sm align-middle" style="font-size: 0.85rem;">
+            <thead class="table-light">
+              <tr>
+                <th>Timestamp</th>
+                <th>User Email</th>
+                <th>Nama</th>
+                <th>Role</th>
+                <th>Aksi (Action)</th>
+                <th>Target ID</th>
+                <th>Detail Informasi</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- MODAL TAMBAH RISIKO -->
+<!-- MODAL TAMBAH RISIKO (SPV/MANAGER/ADMIN ONLY) -->
 <div class="modal fade" id="addRiskModal" tabindex="-1">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
@@ -184,10 +269,10 @@
       </div>
       <div class="modal-body">
         <form id="formAddRisk">
-          <div class="form-section-title"><i class="fa-solid fa-align-left me-1"></i> 1. IDENTIFIKASI RISIKO</div>
+          <div class="form-section-title">1. IDENTIFIKASI RISIKO</div>
           <div class="row g-3 mb-3">
             <div class="col-md-3">
-              <label class="form-label fw-semibold">Tahun Anggaran/Risiko</label>
+              <label class="form-label fw-semibold">Tahun Risiko</label>
               <select id="addTahun" class="form-select" required>
                 <option value="2026">2026</option>
                 <option value="2027" selected>2027</option>
@@ -195,7 +280,7 @@
               </select>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold">Departemen / Divisi</label>
+              <label class="form-label fw-semibold">Departemen</label>
               <input type="text" id="addDept" class="form-control bg-light" readonly>
             </div>
             <div class="col-md-4">
@@ -210,19 +295,19 @@
             </div>
             <div class="col-md-5">
               <label class="form-label fw-semibold">Risiko (Judul Kejadian)</label>
-              <input type="text" id="addRisiko" class="form-control" placeholder="Uraian judul risiko" required>
+              <input type="text" id="addRisiko" class="form-control" required>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Penyebab</label>
-              <textarea id="addPenyebab" class="form-control" rows="2" placeholder="Faktor penyebab kejadian" required></textarea>
+              <textarea id="addPenyebab" class="form-control" rows="2" required></textarea>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Bahaya</label>
-              <textarea id="addBahaya" class="form-control" rows="2" placeholder="Dampak bahaya yang ditimbulkan" required></textarea>
+              <textarea id="addBahaya" class="form-control" rows="2" required></textarea>
             </div>
           </div>
 
-          <div class="form-section-title"><i class="fa-solid fa-calculator me-1"></i> 2. ANALISIS RISIKO</div>
+          <div class="form-section-title">2. ANALISIS RISIKO</div>
           <div class="row g-3 mb-3">
             <div class="col-md-2">
               <label class="form-label fw-semibold">Frekuensi (1-5)</label>
@@ -241,51 +326,49 @@
               <input type="text" id="addWarnaBand" class="form-control bg-light fw-bold text-success" readonly value="Hijau">
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold">Urutan Prioritas</label>
-              <input type="number" id="addUrutanPrioritas" class="form-control" placeholder="Contoh: 1" required>
+              <label class="form-label fw-semibold">Prioritas</label>
+              <input type="number" id="addUrutanPrioritas" class="form-control" value="1" required>
             </div>
           </div>
 
-          <div class="form-section-title"><i class="fa-solid fa-list-check me-1"></i> 3. PENGENDALIAN RISIKO (MITIGASI)</div>
+          <div class="form-section-title">3. PENGENDALIAN RISIKO</div>
           <div class="row g-3 mb-3">
             <div class="col-md-8">
               <label class="form-label fw-semibold">Uraian / Rencana Strategi</label>
-              <textarea id="addRencanaStrategi" class="form-control" rows="2" placeholder="Langkah-langkah penanganan risiko" required></textarea>
+              <textarea id="addRencanaStrategi" class="form-control" rows="2" required></textarea>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold">Klasifikasi Pengendalian Risiko</label>
+              <label class="form-label fw-semibold">Klasifikasi</label>
               <select id="addKlasifikasi" class="form-select" required>
                 <option value="Administratif - Preventif">Administratif - Preventif</option>
                 <option value="Administratif - Korektif">Administratif - Korektif</option>
                 <option value="Teknis - Preventif">Teknis - Preventif</option>
                 <option value="Teknis - Korektif">Teknis - Korektif</option>
-                <option value="APD - Preventif">APD - Preventif</option>
-                <option value="APD - Korektif">APD - Korektif</option>
               </select>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold">Anggaran Biaya (Rp)</label>
+              <label class="form-label fw-semibold">Anggaran (Rp)</label>
               <input type="number" id="addAnggaran" class="form-control" min="0" value="0" required>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold">Target Waktu Penyelesaian</label>
-              <input type="text" id="addTargetWaktu" class="form-control" placeholder="Contoh: 1 hari kerja" required>
+              <label class="form-label fw-semibold">Target Waktu</label>
+              <input type="text" id="addTargetWaktu" class="form-control" required>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-semibold">Pelaksana</label>
-              <input type="text" id="addPelaksana" class="form-control" placeholder="Contoh: Staff" required>
+              <input type="text" id="addPelaksana" class="form-control" required>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-semibold">Penanggung Jawab</label>
-              <input type="text" id="addPenanggungJawab" class="form-control" placeholder="Contoh: Supervisor" required>
+              <input type="text" id="addPenanggungJawab" class="form-control" required>
             </div>
           </div>
 
-          <div class="form-section-title"><i class="fa-solid fa-wrench me-1"></i> 4. MONITORING TOOLS</div>
+          <div class="form-section-title">4. TOOLS MONITORING</div>
           <div class="row g-3">
             <div class="col-md-12">
               <label class="form-label fw-semibold">Tools Yang Digunakan</label>
-              <input type="text" id="addTools" class="form-control" placeholder="Contoh: Log Sistem" required>
+              <input type="text" id="addTools" class="form-control" required>
             </div>
           </div>
         </form>
@@ -298,174 +381,34 @@
   </div>
 </div>
 
-<!-- MODAL EDIT RISIKO -->
-<div class="modal fade" id="editRiskModal" tabindex="-1">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Detail Risiko</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="formEditRisk">
-          <input type="hidden" id="editRiskId">
-          <div class="form-section-title"><i class="fa-solid fa-align-left me-1"></i> 1. IDENTIFIKASI RISIKO</div>
-          <div class="row g-3 mb-3">
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Departemen / Divisi</label>
-              <input type="text" id="editDept" class="form-control bg-light" readonly>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Kategori Risiko</label>
-              <select id="editKategori" class="form-select" required>
-                <option value="Risiko pra-analitik">Risiko pra-analitik</option>
-                <option value="Risiko analitik">Risiko analitik</option>
-                <option value="Risiko pasca-analitik">Risiko pasca-analitik</option>
-                <option value="Risiko Operasional">Risiko Operasional</option>
-                <option value="Risiko K3 & Lingkungan">Risiko K3 & Lingkungan</option>
-              </select>
-            </div>
-            <div class="col-md-5">
-              <label class="form-label fw-semibold">Risiko (Judul Kejadian)</label>
-              <input type="text" id="editRisiko" class="form-control" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Penyebab</label>
-              <textarea id="editPenyebab" class="form-control" rows="2" required></textarea>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Bahaya</label>
-              <textarea id="editBahaya" class="form-control" rows="2" required></textarea>
-            </div>
-          </div>
-
-          <div class="form-section-title"><i class="fa-solid fa-calculator me-1"></i> 2. ANALISIS RISIKO</div>
-          <div class="row g-3 mb-3">
-            <div class="col-md-2">
-              <label class="form-label fw-semibold">Frekuensi (1-5)</label>
-              <input type="number" id="editFrekuensi" class="form-control" min="1" max="5" oninput="hitungSkorRisiko('edit')" required>
-            </div>
-            <div class="col-md-2">
-              <label class="form-label fw-semibold">Dampak (1-5)</label>
-              <input type="number" id="editDampak" class="form-control" min="1" max="5" oninput="hitungSkorRisiko('edit')" required>
-            </div>
-            <div class="col-md-2">
-              <label class="form-label fw-semibold">Skor Risiko</label>
-              <input type="number" id="editSkor" class="form-control bg-light" readonly>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Warna Band</label>
-              <input type="text" id="editWarnaBand" class="form-control bg-light fw-bold text-success" readonly>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Urutan Prioritas</label>
-              <input type="number" id="editUrutanPrioritas" class="form-control" required>
-            </div>
-          </div>
-
-          <div class="form-section-title"><i class="fa-solid fa-list-check me-1"></i> 3. PENGENDALIAN RISIKO (MITIGASI)</div>
-          <div class="row g-3 mb-3">
-            <div class="col-md-8">
-              <label class="form-label fw-semibold">Uraian / Rencana Strategi</label>
-              <textarea id="editRencanaStrategi" class="form-control" rows="2" required></textarea>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Klasifikasi Pengendalian Risiko</label>
-              <select id="editKlasifikasi" class="form-select" required>
-                <option value="Administratif - Preventif">Administratif - Preventif</option>
-                <option value="Administratif - Korektif">Administratif - Korektif</option>
-                <option value="Teknis - Preventif">Teknis - Preventif</option>
-                <option value="Teknis - Korektif">Teknis - Korektif</option>
-                <option value="APD - Preventif">APD - Preventif</option>
-                <option value="APD - Korektif">APD - Korektif</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Anggaran Biaya (Rp)</label>
-              <input type="number" id="editAnggaran" class="form-control" min="0" required>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Target Waktu Penyelesaian</label>
-              <input type="text" id="editTargetWaktu" class="form-control" required>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Pelaksana</label>
-              <input type="text" id="editPelaksana" class="form-control" required>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Penanggung Jawab</label>
-              <input type="text" id="editPenanggungJawab" class="form-control" required>
-            </div>
-          </div>
-
-          <div class="form-section-title"><i class="fa-solid fa-wrench me-1"></i> 4. MONITORING TOOLS</div>
-          <div class="row g-3">
-            <div class="col-md-12">
-              <label class="form-label fw-semibold">Tools Yang Digunakan</label>
-              <input type="text" id="editTools" class="form-control" required>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button type="button" class="btn btn-warning" onclick="saveUpdatedRisk()"><i class="fa-solid fa-save me-1"></i> Update Perubahan</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL DETAIL -->
-<div class="modal fade" id="detailModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title"><i class="fa-solid fa-circle-info me-2"></i>Detail Parameter Risiko</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" id="detailModalContent"></div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL EVALUASI DAN REVIEW RISIKO -->
+<!-- MODAL EVALUASI RISIKO -->
 <div class="modal fade" id="evaluasiModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title"><i class="fa-solid fa-clipboard-check me-2"></i>Form Evaluasi & Review Risiko Bulanan</h5>
+        <h5 class="modal-title"><i class="fa-solid fa-clipboard-check me-2"></i>Form Evaluasi & Review Risiko</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form id="formEvaluasi">
           <input type="hidden" id="evalRiskId">
-
-          <!-- Ringkasan Risiko -->
           <div class="alert alert-info py-2">
             <strong>Risiko:</strong> <span id="evalRiskTitle">-</span><br>
-            <small><strong>Departemen:</strong> <span id="evalRiskDept">-</span> | <strong>Kategori:</strong> <span id="evalRiskKategori">-</span></small>
+            <small><strong>Departemen:</strong> <span id="evalRiskDept">-</span></small>
           </div>
 
           <div class="row g-3 mb-3">
             <div class="col-md-6">
-              <label class="form-label fw-semibold">Pilih Bulan Evaluasi</label>
+              <label class="form-label fw-semibold">Pilih Bulan</label>
               <select id="evalBulan" class="form-select" onchange="loadEvaluationForSelectedMonth()" required>
-                <option value="Jan">Januari</option>
-                <option value="Feb">Februari</option>
-                <option value="Mar">Maret</option>
-                <option value="Apr">April</option>
-                <option value="Mei">Mei</option>
-                <option value="Jun">Juni</option>
-                <option value="Jul">Juli</option>
-                <option value="Agu">Agustus</option>
-                <option value="Sep">September</option>
-                <option value="Okt" selected>Oktober</option>
-                <option value="Nov">November</option>
-                <option value="Des">Desember</option>
+                <option value="Jan">Januari</option><option value="Feb">Februari</option><option value="Mar">Maret</option>
+                <option value="Apr">April</option><option value="Mei">Mei</option><option value="Jun">Juni</option>
+                <option value="Jul">Juli</option><option value="Agu">Agustus</option><option value="Sep">September</option>
+                <option value="Okt" selected>Oktober</option><option value="Nov">November</option><option value="Des">Desember</option>
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold">Apakah Masih Ada Kejadian Dalam Bulan Ini?</label>
+              <label class="form-label fw-semibold">Apakah Masih Ada Kejadian?</label>
               <select id="evalAdaKejadian" class="form-select" onchange="toggleEvalFormFields()" required>
                 <option value="">-- Pilih --</option>
                 <option value="Ya">Ya (Terjadi Kejadian Risiko)</option>
@@ -474,73 +417,35 @@
             </div>
           </div>
 
-          <!-- SECTION JIKA YA (ADA KEJADIAN) -->
           <div id="sectionAdaKejadian" class="d-none p-3 border rounded bg-light mb-3">
-            <h6 class="fw-bold text-danger mb-3"><i class="fa-solid fa-triangle-exclamation me-1"></i> Penanganan & Mitigasi Baru</h6>
-            
+            <h6 class="fw-bold text-danger mb-3">Penanganan & Mitigasi Baru</h6>
             <div class="mb-3">
               <label class="form-label fw-semibold">Analisis Penyebab Kejadian</label>
-              <textarea id="evalAnalisisPenyebab" class="form-control" rows="2" placeholder="Jelaskan faktor utama penyebab risiko tetap terjadi..."></textarea>
+              <textarea id="evalAnalisisPenyebab" class="form-control" rows="2"></textarea>
             </div>
-
             <div class="mb-3">
-              <label class="form-label fw-semibold">Apakah Dibutuhkan Mitigasi Risiko Baru? (Uraian Strategi)</label>
-              <textarea id="evalMitigasiBaru" class="form-control" rows="2" placeholder="Uraikan rencana / tindakan mitigasi baru jika ada..."></textarea>
+              <label class="form-label fw-semibold">Uraian Mitigasi Baru</label>
+              <textarea id="evalMitigasiBaru" class="form-control" rows="2"></textarea>
             </div>
-
-            <div class="row g-3 mb-3">
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Klasifikasi Pengendalian Risiko Baru</label>
-                <select id="evalKlasifikasiBaru" class="form-select">
-                  <option value="Administratif - Preventif">Administratif - Preventif</option>
-                  <option value="Administratif - Korektif">Administratif - Korektif</option>
-                  <option value="Teknis - Preventif">Teknis - Preventif</option>
-                  <option value="Teknis - Korektif">Teknis - Korektif</option>
-                  <option value="APD - Preventif">APD - Preventif</option>
-                  <option value="APD - Korektif">APD - Korektif</option>
-                </select>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Anggaran Biaya Baru (Rp)</label>
-                <input type="number" id="evalAnggaranBaru" class="form-control" value="0" min="0">
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-semibold">Target Waktu Penyelesaian</label>
-                <input type="text" id="evalTargetBaru" class="form-control" placeholder="Contoh: 14 hari kerja">
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-semibold">Pelaksana Baru</label>
-                <input type="text" id="evalPelaksanaBaru" class="form-control" placeholder="Nama / Jabatan Pelaksana">
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-semibold">Penanggung Jawab Baru</label>
-                <input type="text" id="evalPJBaru" class="form-control" placeholder="Nama / Jabatan PJ">
-              </div>
-            </div>
-
             <div class="mb-3">
-              <label class="form-label fw-semibold">Upload File Bukti / Penjelasan (.pdf, .jpg, .png)</label>
-              <input type="file" id="evalFileInput" class="form-control" accept=".pdf, image/*">
-              <!-- Elemen penampung link file yang sudah ada -->
+              <label class="form-label fw-semibold">Upload File Bukti (.pdf / gambar)</label>
+              <input type="file" id="evalFileInput" class="form-control">
               <div id="evalFileLinkContainer"></div>
-              <small class="text-muted">* File akan disimpan otomatis di Google Drive pemilik aplikasi</small>
             </div>
           </div>
 
-          <!-- SECTION JIKA TIDAK (TIDAK ADA KEJADIAN) -->
           <div id="sectionTidakAdaKejadian" class="d-none p-3 border rounded bg-light mb-3">
-            <h6 class="fw-bold text-success mb-3"><i class="fa-solid fa-circle-check me-1"></i> Evaluasi Efektivitas Mitigasi</h6>
+            <h6 class="fw-bold text-success mb-3">Evaluasi Efektivitas Mitigasi</h6>
             <div class="mb-3">
-              <label class="form-label fw-semibold">Apakah Mitigasi Risiko yang Sudah Berjalan Cukup Efektif? Jelaskan:</label>
-              <textarea id="evalEfektifJikaTidak" class="form-control" rows="3" placeholder="Jelaskan alasan mengapa mitigasi berjalan efektif..."></textarea>
+              <label class="form-label fw-semibold">Penjelasan Efektivitas Mitigasi</label>
+              <textarea id="evalEfektifJikaTidak" class="form-control" rows="3"></textarea>
             </div>
           </div>
-
         </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button type="button" class="btn btn-primary" onclick="saveEvaluasiRisk()"><i class="fa-solid fa-upload me-1"></i> Simpan Evaluasi</button>
+        <button type="button" id="btnSaveEval" class="btn btn-primary" onclick="saveEvaluasiRisk()"><i class="fa-solid fa-upload me-1"></i> Simpan Evaluasi</button>
       </div>
     </div>
   </div>
@@ -550,8 +455,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  // SILAKAN GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT WEB APP ANDA
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxqd5HgORVnvvZ-we_RObfrlbhcU9efw2cpGplDopC4Bqz6-ckZ-YPpGJ6qUjwoIn13/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwTUri0JvzrcsGD4Bp-8DD4kXlqOYa4y2OU-_eyWgGC8MpoJVwX9eZTsJj8uLNe_za0/exec";
 
   let currentUser = null;
   let riskData = [];
@@ -593,7 +497,7 @@
       if (result.success) {
         currentUser = result.user;
         localStorage.setItem("riskAppUser", JSON.stringify(currentUser));
-        Swal.fire({ icon: 'success', title: 'Login Berhasil', timer: 1200, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: 'Login Berhasil', timer: 1000, showConfirmButton: false });
         showDashboard();
       } else {
         Swal.fire('Gagal Login', result.message, 'error');
@@ -609,6 +513,7 @@
       name: document.getElementById('regName').value,
       email: document.getElementById('regEmail').value,
       dept: document.getElementById('regDept').value,
+      role: document.getElementById('regRole').value,
       password: document.getElementById('regPassword').value
     };
 
@@ -629,7 +534,7 @@
         Swal.fire('Gagal', result.message, 'error');
       }
     } catch (err) {
-      Swal.fire('Error', 'Gagal mendaftar user baru.', 'error');
+      Swal.fire('Error', 'Gagal mendaftar user.', 'error');
     }
   }
 
@@ -648,127 +553,19 @@
     document.getElementById('userDisplayDept').innerText = `Dept: ${currentUser.dept}`;
     document.getElementById('userDisplayRole').innerText = currentUser.role;
 
+    // KEBUTUHAN 1: Atur Otorisasi Tambah Risiko (Admin, SPV, Manager)
+    const canAdd = ['Admin', 'Manager', 'SPV', 'Supervisor'].includes(currentUser.role);
+    if (canAdd) {
+      document.getElementById('btnAddRisk').classList.remove('d-none');
+    } else {
+      document.getElementById('btnAddRisk').classList.add('d-none');
+    }
+
     if (currentUser.role === 'Admin') {
       document.getElementById('btnAdminApproval').classList.remove('d-none');
-      loadPendingUsersCount();
-    } else {
-      document.getElementById('btnAdminApproval').classList.add('d-none');
     }
 
     loadRisksFromAPI();
-  }
-
-  async function loadPendingUsersCount() {
-    try {
-      const res = await fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'getPendingUsers', email: currentUser.email })
-      });
-      const result = await res.json();
-      if (result.success) {
-        const count = result.data.length;
-        const badge = document.getElementById('pendingBadge');
-        if (count > 0) {
-          badge.innerText = count;
-          badge.classList.remove('d-none');
-        } else {
-          badge.classList.add('d-none');
-        }
-      }
-    } catch (err) {
-      console.error("Gagal memuat daftar pending user", err);
-    }
-  }
-
-  async function openApprovalModal() {
-    Swal.showLoading();
-    try {
-      const res = await fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'getPendingUsers', email: currentUser.email })
-      });
-      const result = await res.json();
-      Swal.close();
-
-      if (result.success) {
-        renderPendingTable(result.data);
-        new bootstrap.Modal(document.getElementById('approvalModal')).show();
-      } else {
-        Swal.fire('Gagal', result.message, 'error');
-      }
-    } catch (err) {
-      Swal.fire('Error', 'Gagal memuat daftar user pending.', 'error');
-    }
-  }
-
-  function renderPendingTable(users) {
-    const tbody = document.getElementById('pendingTableBody');
-    tbody.innerHTML = '';
-
-    if (users.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Tidak ada akun baru yang menunggu persetujuan.</td></tr>';
-      return;
-    }
-
-    users.forEach((u, index) => {
-      let tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td><b>${u.name}</b></td>
-        <td>${u.email}</td>
-        <td><span class="badge bg-secondary">${u.dept}</span></td>
-        <td class="text-center">
-          <button class="btn btn-sm btn-success me-1" onclick="processUserStatus('${u.email}', 'Active')">
-            <i class="fa-solid fa-check me-1"></i> Accept
-          </button>
-          <button class="btn btn-sm btn-danger" onclick="processUserStatus('${u.email}', 'Rejected')">
-            <i class="fa-solid fa-xmark me-1"></i> Reject
-          </button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  async function processUserStatus(targetEmail, status) {
-    const actionText = status === 'Active' ? 'menyetujui' : 'menolak';
-    const confirm = await Swal.fire({
-      title: 'Konfirmasi',
-      text: `Apakah Anda yakin ingin ${actionText} akun ${targetEmail}?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Ya, Proses',
-      cancelButtonText: 'Batal'
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    Swal.showLoading();
-    try {
-      const res = await fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ 
-          action: 'updateUserStatus', 
-          email: currentUser.email, 
-          targetEmail: targetEmail, 
-          status: status 
-        })
-      });
-      const result = await res.json();
-
-      if (result.success) {
-        Swal.fire('Berhasil!', result.message, 'success');
-        openApprovalModal();
-        loadPendingUsersCount();
-      } else {
-        Swal.fire('Gagal', result.message, 'error');
-      }
-    } catch (err) {
-      Swal.fire('Error', 'Gagal memproses status pengguna.', 'error');
-    }
   }
 
   async function loadRisksFromAPI() {
@@ -790,7 +587,7 @@
         Swal.fire('Gagal Memuat Data', result.message, 'error');
       }
     } catch (err) {
-      Swal.fire('Error', 'Gagal memuat data risiko dari server.', 'error');
+      Swal.fire('Error', 'Gagal memuat data dari server.', 'error');
     }
   }
 
@@ -799,9 +596,11 @@
     tbody.innerHTML = '';
 
     if (dataToRender.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="17" class="text-center text-muted">Belum ada data risiko untuk departemen ini.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="17" class="text-center text-muted">Tidak ada data risiko.</td></tr>';
       return;
     }
+
+    const isMutuUser = ['Mutu', 'Admin', 'Tim Mutu'].includes(currentUser.role);
 
     dataToRender.forEach((item, index) => {
       let badgeClass = 'badge-band-hijau';
@@ -810,15 +609,30 @@
       if (w === 'oranye') badgeClass = 'badge-band-oranye';
       if (w === 'merah') badgeClass = 'badge-band-merah';
 
+      // KEBUTUHAN 2: Kunci input jika status = VALIDATED
+      const isLocked = item.isValidated === 'VALIDATED';
+
       let monthInputsHTML = months.map(m => `
         <td class="p-1 text-center">
           <input type="number" min="0" class="form-control form-control-sm month-input" 
                  value="${item.monitoring[m] ?? 0}" 
+                 ${isLocked ? 'disabled' : ''} 
                  onchange="updateMonitoringValue(${item.id}, '${m}', this.value)">
         </td>
       `).join('');
 
-      const canEdit = currentUser.role === 'Admin' || item.dept.toLowerCase() === currentUser.dept.toLowerCase();
+      let validBadge = isLocked 
+        ? `<span class="badge bg-success"><i class="fa-solid fa-lock me-1"></i>VALIDATED</span>`
+        : `<span class="badge bg-warning text-dark">DRAFT</span>`;
+
+      // Tombol Aksi Mutu
+      let btnMutuValidation = isMutuUser ? `
+        <button class="btn btn-sm ${isLocked ? 'btn-secondary' : 'btn-success'} text-white me-1" 
+                onclick="validateRisk(${item.id}, '${isLocked ? 'DRAFT' : 'VALIDATED'}')" 
+                title="${isLocked ? 'Buka Kunci' : 'Validasi & Kunci'}">
+          <i class="fa-solid ${isLocked ? 'fa-unlock' : 'fa-check-double'}"></i>
+        </button>
+      ` : '';
 
       let tr = document.createElement('tr');
       tr.innerHTML = `
@@ -829,16 +643,11 @@
           <small class="text-muted">${item.kategori}</small> 
           <span class="badge ${badgeClass} ms-1">${item.warna} (${item.skor})</span>
         </td>
-        <td><small>${item.tools}</small></td>
+        <td class="text-center">${validBadge}</td>
         ${monthInputsHTML}
         <td class="text-center">
-          <button class="btn btn-sm btn-info text-white me-1" onclick="showDetail(${item.id})" title="Detail Parameter">
-            <i class="fa-solid fa-eye"></i>
-          </button>
-          <button class="btn btn-sm btn-warning text-dark me-1" onclick="openEditRiskModal(${item.id})" title="Edit Detail Risiko" ${!canEdit ? 'disabled' : ''}>
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button class="btn btn-sm btn-primary text-white" onclick="openEvaluasiModal(${item.id})" title="Evaluasi & Review Bulanan">
+          ${btnMutuValidation}
+          <button class="btn btn-sm btn-primary text-white" onclick="openEvaluasiModal(${item.id})" title="Evaluasi & Monitoring">
             <i class="fa-solid fa-clipboard-check"></i>
           </button>
         </td>
@@ -854,41 +663,125 @@
     }
   }
 
+  // KEBUTUHAN 2: Fungsi Validasi Tim Mutu
+  async function validateRisk(riskId, newStatus) {
+    const confirm = await Swal.fire({
+      title: 'Konfirmasi Validasi Mutu',
+      text: newStatus === 'VALIDATED' 
+        ? 'Setelah divalidasi, data risiko ini akan DIKUNCI dan tidak dapat diubah oleh user departemen.' 
+        : 'Membuka kunci validasi risiko?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Proses'
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'validateRisk', email: currentUser.email, riskId: riskId, statusValidasi: newStatus })
+      });
+      const result = await res.json();
+      if (result.success) {
+        Swal.fire('Berhasil', result.message, 'success');
+        loadRisksFromAPI();
+      } else {
+        Swal.fire('Gagal', result.message, 'error');
+      }
+    } catch(err) {
+      Swal.fire('Error', 'Gagal memproses validasi.', 'error');
+    }
+  }
+
+  // KEBUTUHAN 3: Dashboard Incident & Evaluasi Progress
+  async function loadIncidentDashboard() {
+    const selectedYear = document.getElementById('filterTahun').value;
+    const tbody = document.getElementById('incidentTableBody');
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center">Memuat data dashboard...</td></tr>';
+
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getDashboardIncidents', email: currentUser.email, tahun: selectedYear })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        tbody.innerHTML = '';
+        if (result.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Belum ada risiko yang tercatat memiliki kejadian.</td></tr>';
+          return;
+        }
+
+        result.data.forEach((item, index) => {
+          let tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td><span class="badge bg-secondary">${item.dept}</span></td>
+            <td><b>${item.risiko}</b></td>
+            <td>${item.kategori}</td>
+            <td><span class="badge bg-danger">${item.warna} (${item.skor})</span></td>
+            <td class="text-center fw-bold text-danger fs-6">${item.totalKejadian} kali</td>
+            <td class="text-center">${item.isValidated === 'VALIDATED' ? '<span class="badge bg-success">TERVALIDASI</span>' : '<span class="badge bg-warning text-dark">DRAFT</span>'}</td>
+            <td><span class="badge bg-info text-dark">${item.evaluasiStatus}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    } catch(err) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Gagal memuat dashboard.</td></tr>';
+    }
+  }
+
+  // KEBUTUHAN 4: Audit Trails Log Table
+  async function loadAuditLogs() {
+    const tbody = document.getElementById('auditTableBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Memuat log audit...</td></tr>';
+
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getAuditLogs', email: currentUser.email })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        tbody.innerHTML = '';
+        if (result.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada log aktivitas.</td></tr>';
+          return;
+        }
+
+        result.data.forEach(log => {
+          let tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><small class="text-muted">${log.timestamp}</small></td>
+            <td>${log.email}</td>
+            <td><b>${log.name}</b></td>
+            <td><span class="badge bg-light text-dark">${log.role}</span></td>
+            <td><span class="badge bg-primary">${log.action}</span></td>
+            <td><code>${log.targetId}</code></td>
+            <td>${log.detail}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    } catch(err) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal memuat log audit.</td></tr>';
+    }
+  }
+
+  // Functions Form Modal & Evaluasi
   function openAddRiskModal() {
     document.getElementById('formAddRisk').reset();
     document.getElementById('addDept').value = currentUser.dept;
     hitungSkorRisiko('add');
     new bootstrap.Modal(document.getElementById('addRiskModal')).show();
-  }
-
-  function openEditRiskModal(id) {
-    const item = riskData.find(r => r.id === id);
-    if (!item) return;
-
-    if (currentUser.role !== 'Admin' && item.dept.toLowerCase() !== currentUser.dept.toLowerCase()) {
-      Swal.fire('Akses Ditolak', 'Anda hanya dapat mengedit risiko dari departemen Anda sendiri.', 'warning');
-      return;
-    }
-
-    document.getElementById('editRiskId').value = item.id;
-    document.getElementById('editDept').value = item.dept;
-    document.getElementById('editKategori').value = item.kategori;
-    document.getElementById('editRisiko').value = item.risiko;
-    document.getElementById('editPenyebab').value = item.penyebab;
-    document.getElementById('editBahaya').value = item.bahaya;
-    document.getElementById('editFrekuensi').value = item.frekuensi;
-    document.getElementById('editDampak').value = item.dampak;
-    document.getElementById('editUrutanPrioritas').value = item.prioritas;
-    document.getElementById('editRencanaStrategi').value = item.rencana;
-    document.getElementById('editKlasifikasi').value = item.klasifikasi;
-    document.getElementById('editAnggaran').value = item.anggaran;
-    document.getElementById('editTargetWaktu').value = item.target;
-    document.getElementById('editPelaksana').value = item.pelaksana;
-    document.getElementById('editPenanggungJawab').value = item.penanggungJawab;
-    document.getElementById('editTools').value = item.tools;
-
-    hitungSkorRisiko('edit');
-    new bootstrap.Modal(document.getElementById('editRiskModal')).show();
   }
 
   function hitungSkorRisiko(prefix) {
@@ -898,32 +791,18 @@
 
     const elSkor = document.getElementById(`${prefix}Skor`);
     const elWarna = document.getElementById(`${prefix}WarnaBand`);
-
     elSkor.value = skor;
 
-    if (skor >= 16) {
-      elWarna.value = "Merah";
-      elWarna.className = "form-control bg-light fw-bold text-danger";
-    } else if (skor >= 10) {
-      elWarna.value = "Oranye";
-      elWarna.className = "form-control bg-light fw-bold text-warning";
-    } else if (skor >= 5) {
-      elWarna.value = "Kuning";
-      elWarna.className = "form-control bg-light fw-bold text-warning";
-    } else {
-      elWarna.value = "Hijau";
-      elWarna.className = "form-control bg-light fw-bold text-success";
-    }
+    if (skor >= 16) { elWarna.value = "Merah"; elWarna.className = "form-control bg-light fw-bold text-danger"; }
+    else if (skor >= 10) { elWarna.value = "Oranye"; elWarna.className = "form-control bg-light fw-bold text-warning"; }
+    else if (skor >= 5) { elWarna.value = "Kuning"; elWarna.className = "form-control bg-light fw-bold text-warning"; }
+    else { elWarna.value = "Hijau"; elWarna.className = "form-control bg-light fw-bold text-success"; }
   }
 
   async function saveNewRisk() {
     const form = document.getElementById('formAddRisk');
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
-    }
+    if (!form.checkValidity()) { form.reportValidity(); return; }
 
-    // FIX: Menambahkan koma yang hilang
     const payload = {
       action: 'addRisk',
       email: currentUser.email,
@@ -955,7 +834,6 @@
         body: JSON.stringify(payload)
       });
       const result = await res.json();
-
       if (result.success) {
         bootstrap.Modal.getInstance(document.getElementById('addRiskModal')).hide();
         Swal.fire('Berhasil!', result.message, 'success');
@@ -968,64 +846,8 @@
     }
   }
 
-  async function saveUpdatedRisk() {
-    const form = document.getElementById('formEditRisk');
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
-    }
-
-    const payload = {
-      action: 'updateRisk',
-      email: currentUser.email,
-      data: {
-        id: parseInt(document.getElementById('editRiskId').value),
-        dept: document.getElementById('editDept').value,
-        kategori: document.getElementById('editKategori').value,
-        risiko: document.getElementById('editRisiko').value,
-        penyebab: document.getElementById('editPenyebab').value,
-        bahaya: document.getElementById('editBahaya').value,
-        frekuensi: parseInt(document.getElementById('editFrekuensi').value),
-        dampak: parseInt(document.getElementById('editDampak').value),
-        prioritas: parseInt(document.getElementById('editUrutanPrioritas').value),
-        rencana: document.getElementById('editRencanaStrategi').value,
-        klasifikasi: document.getElementById('editKlasifikasi').value,
-        anggaran: parseInt(document.getElementById('editAnggaran').value),
-        target: document.getElementById('editTargetWaktu').value,
-        pelaksana: document.getElementById('editPelaksana').value,
-        penanggungJawab: document.getElementById('editPenanggungJawab').value,
-        tools: document.getElementById('editTools').value
-      }
-    };
-
-    Swal.showLoading();
-    try {
-      const res = await fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      const result = await res.json();
-
-      if (result.success) {
-        bootstrap.Modal.getInstance(document.getElementById('editRiskModal')).hide();
-        Swal.fire('Berhasil!', result.message, 'success');
-        loadRisksFromAPI();
-      } else {
-        Swal.fire('Gagal', result.message, 'error');
-      }
-    } catch (e) {
-      Swal.fire('Error', 'Gagal menghubungi server.', 'error');
-    }
-  }
-
   async function simpanSemuaMonitoring() {
-    const payload = {
-      action: 'saveMonitoring',
-      email: currentUser.email,
-      data: riskData
-    };
-
+    const payload = { action: 'saveMonitoring', email: currentUser.email, data: riskData };
     Swal.showLoading();
     try {
       const res = await fetch(GAS_API_URL, {
@@ -1034,48 +856,11 @@
         body: JSON.stringify(payload)
       });
       const result = await res.json();
-
-      if (result.success) {
-        Swal.fire('Berhasil!', result.message, 'success');
-      } else {
-        Swal.fire('Gagal', result.message, 'error');
-      }
+      if (result.success) Swal.fire('Berhasil!', result.message, 'success');
+      else Swal.fire('Gagal', result.message, 'error');
     } catch (e) {
       Swal.fire('Error', 'Gagal menghubungi server.', 'error');
     }
-  }
-
-  function filterTable() {
-    const search = document.getElementById('filterSearch').value.toLowerCase();
-    const filtered = riskData.filter(item => {
-      return item.risiko.toLowerCase().includes(search) || item.penyebab.toLowerCase().includes(search);
-    });
-    renderTable(filtered);
-  }
-
-  function showDetail(id) {
-    const item = riskData.find(r => r.id === id);
-    if (!item) return;
-
-    const content = `
-      <table class="table table-bordered">
-        <tr><th class="w-30 bg-light">Departemen</th><td>${item.dept}</td></tr>
-        <tr><th class="bg-light">Kategori Risiko</th><td>${item.kategori}</td></tr>
-        <tr><th class="bg-light">Risiko</th><td><b>${item.risiko}</b></td></tr>
-        <tr><th class="bg-light">Penyebab</th><td>${item.penyebab}</td></tr>
-        <tr><th class="bg-light">Bahaya</th><td>${item.bahaya}</td></tr>
-        <tr><th class="bg-light">Frekuensi / Dampak / Skor</th><td>${item.frekuensi} / ${item.dampak} / <b>${item.skor} (${item.warna})</b></td></tr>
-        <tr><th class="bg-light">Urutan Prioritas</th><td>${item.prioritas}</td></tr>
-        <tr><th class="bg-light">Rencana Strategi (Mitigasi)</th><td>${item.rencana}</td></tr>
-        <tr><th class="bg-light">Klasifikasi & Anggaran</th><td>${item.klasifikasi} | Rp ${Number(item.anggaran).toLocaleString()}</td></tr>
-        <tr><th class="bg-light">Target Waktu</th><td>${item.target}</td></tr>
-        <tr><th class="bg-light">Pelaksana / Penanggung Jawab</th><td>${item.pelaksana} / ${item.penanggungJawab}</td></tr>
-        <tr><th class="bg-light">Tools Digunakan</th><td>${item.tools}</td></tr>
-      </table>
-    `;
-
-    document.getElementById('detailModalContent').innerHTML = content;
-    new bootstrap.Modal(document.getElementById('detailModal')).show();
   }
 
   async function openEvaluasiModal(id) {
@@ -1086,7 +871,10 @@
     document.getElementById('evalRiskId').value = item.id;
     document.getElementById('evalRiskTitle').innerText = item.risiko;
     document.getElementById('evalRiskDept').innerText = item.dept;
-    document.getElementById('evalRiskKategori').innerText = item.kategori;
+
+    // Lock button jika locked
+    const isLocked = item.isValidated === 'VALIDATED';
+    document.getElementById('btnSaveEval').disabled = isLocked;
 
     Swal.showLoading();
     try {
@@ -1102,8 +890,6 @@
         currentRiskEvaluations = result.data || [];
         loadEvaluationForSelectedMonth();
         new bootstrap.Modal(document.getElementById('evaluasiModal')).show();
-      } else {
-        Swal.fire('Error', result.message, 'error');
       }
     } catch (err) {
       Swal.fire('Error', 'Gagal memuat histori evaluasi.', 'error');
@@ -1117,52 +903,24 @@
     document.getElementById('evalAdaKejadian').value = ev.adaKejadian || '';
     document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
     document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
-    document.getElementById('evalKlasifikasiBaru').value = ev.klasifikasiBaru || 'Administratif - Preventif';
-    document.getElementById('evalAnggaranBaru').value = ev.anggaranBaru || 0;
-    document.getElementById('evalTargetBaru').value = ev.targetBaru || '';
-    document.getElementById('evalPelaksanaBaru').value = ev.pelaksanaBaru || '';
-    document.getElementById('evalPJBaru').value = ev.pjBaru || '';
     document.getElementById('evalEfektifJikaTidak').value = ev.efektifJikaTidak || '';
-
-    const fileContainer = document.getElementById('evalFileLinkContainer');
-    if (fileContainer) {
-      if (ev.fileUrl) {
-        fileContainer.innerHTML = `
-          <div class="mt-2 text-success">
-            <i class="fa-solid fa-file-circle-check me-1"></i> Bukti tersimpan (${ev.bulan}): 
-            <a href="${ev.fileUrl}" target="_blank" class="fw-bold text-decoration-underline">Lihat / Download File Bukti</a>
-          </div>`;
-      } else {
-        fileContainer.innerHTML = '';
-      }
-    }
 
     toggleEvalFormFields();
   }
 
   function toggleEvalFormFields() {
-    const adaKejadian = document.getElementById('evalAdaKejadian').value;
+    const val = document.getElementById('evalAdaKejadian').value;
     const secYa = document.getElementById('sectionAdaKejadian');
     const secTidak = document.getElementById('sectionTidakAdaKejadian');
 
-    if (adaKejadian === 'Ya') {
-      secYa.classList.remove('d-none');
-      secTidak.classList.add('d-none');
-    } else if (adaKejadian === 'Tidak') {
-      secTidak.classList.remove('d-none');
-      secYa.classList.add('d-none');
-    } else {
-      secYa.classList.add('d-none');
-      secTidak.classList.add('d-none');
-    }
+    if (val === 'Ya') { secYa.classList.remove('d-none'); secTidak.classList.add('d-none'); }
+    else if (val === 'Tidak') { secTidak.classList.remove('d-none'); secYa.classList.add('d-none'); }
+    else { secYa.classList.add('d-none'); secTidak.classList.add('d-none'); }
   }
 
   async function saveEvaluasiRisk() {
     const form = document.getElementById('formEvaluasi');
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
-    }
+    if (!form.checkValidity()) { form.reportValidity(); return; }
 
     const riskId = document.getElementById('evalRiskId').value;
     const bulan = document.getElementById('evalBulan').value;
@@ -1170,12 +928,7 @@
     const fileInput = document.getElementById('evalFileInput').files[0];
 
     let fileData = null, fileName = null, mimeType = null;
-
     if (fileInput) {
-      if (fileInput.size > 10 * 1024 * 1024) {
-        Swal.fire('File Terlalu Besar', 'Ukuran file maksimal adalah 10 MB.', 'warning');
-        return;
-      }
       fileData = await readFileAsBase64(fileInput);
       fileName = fileInput.name;
       mimeType = fileInput.type;
@@ -1191,15 +944,8 @@
         adaKejadian: document.getElementById('evalAdaKejadian').value,
         analisisPenyebab: document.getElementById('evalAnalisisPenyebab').value,
         mitigasiBaru: document.getElementById('evalMitigasiBaru').value,
-        klasifikasiBaru: document.getElementById('evalKlasifikasiBaru').value,
-        anggaranBaru: parseInt(document.getElementById('evalAnggaranBaru').value) || 0,
-        targetBaru: document.getElementById('evalTargetBaru').value,
-        pelaksanaBaru: document.getElementById('evalPelaksanaBaru').value,
-        pjBaru: document.getElementById('evalPJBaru').value,
         efektifJikaTidak: document.getElementById('evalEfektifJikaTidak').value,
-        fileData: fileData,
-        fileName: fileName,
-        mimeType: mimeType
+        fileData: fileData, fileName: fileName, mimeType: mimeType
       }
     };
 
@@ -1211,7 +957,6 @@
         body: JSON.stringify(payload)
       });
       const result = await res.json();
-
       if (result.success) {
         bootstrap.Modal.getInstance(document.getElementById('evaluasiModal')).hide();
         Swal.fire('Berhasil!', result.message, 'success');
@@ -1220,7 +965,7 @@
         Swal.fire('Gagal', result.message, 'error');
       }
     } catch (e) {
-      Swal.fire('Error', 'Gagal mengirim data evaluasi.', 'error');
+      Swal.fire('Error', 'Gagal menyimpan evaluasi.', 'error');
     }
   }
 
@@ -1232,35 +977,14 @@
       reader.readAsDataURL(file);
     });
   }
+
+  function filterTable() {
+    const search = document.getElementById('filterSearch').value.toLowerCase();
+    const filtered = riskData.filter(item => {
+      return item.risiko.toLowerCase().includes(search) || item.penyebab.toLowerCase().includes(search);
+    });
+    renderTable(filtered);
+  }
 </script>
-  <!-- MODAL PERSETUJUAN AKUN (ADMIN ONLY) -->
-<div class="modal fade" id="approvalModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title"><i class="fa-solid fa-user-clock me-2"></i>Persetujuan Akun Baru</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="table-responsive">
-          <table class="table table-hover table-bordered align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>No</th>
-                <th>Nama Lengkap</th>
-                <th>Email</th>
-                <th>Departemen</th>
-                <th class="text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="pendingTableBody">
-              <!-- Rendered by JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 </body>
 </html>
