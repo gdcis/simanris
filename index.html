@@ -429,10 +429,14 @@
               <textarea id="evalMitigasiBaru" class="form-control" rows="2"></textarea>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-semibold">Upload File Bukti (.pdf / gambar)</label>
-              <input type="file" id="evalFileInput" class="form-control">
-              <div id="evalFileLinkContainer"></div>
-            </div>
+            <label class="form-label fw-semibold">Upload File Bukti / Penjelasan (.pdf, .jpg, .png)</label>
+            <input type="file" id="evalFileInput" class="form-control" accept=".pdf, image/*">
+  
+            <!-- ELEMEN PENAMPUNG LINK & PREVIEW FILE BUKTI -->
+            <div id="evalFileLinkContainer" class="mt-2"></div>
+  
+            <small class="text-muted d-block mt-1">* File tersimpan otomatis di Google Drive</small>
+          </div>
           </div>
 
           <div id="sectionTidakAdaKejadian" class="d-none p-3 border rounded bg-light mb-3">
@@ -913,16 +917,40 @@ async function openEvaluasiModal(id) {
 }
 
   function loadEvaluationForSelectedMonth() {
-    const selectedMonth = document.getElementById('evalBulan').value;
-    const ev = currentRiskEvaluations.find(e => e.bulan === selectedMonth) || {};
+  const selectedMonth = document.getElementById('evalBulan').value;
+  const ev = currentRiskEvaluations.find(e => e.bulan === selectedMonth) || {};
 
-    document.getElementById('evalAdaKejadian').value = ev.adaKejadian || '';
-    document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
-    document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
-    document.getElementById('evalEfektifJikaTidak').value = ev.efektifJikaTidak || '';
+  document.getElementById('evalAdaKejadian').value = ev.adaKejadian || '';
+  document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
+  document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
+  document.getElementById('evalEfektifJikaTidak').value = ev.efektifJikaTidak || '';
 
-    toggleEvalFormFields();
+  // PERBAIKAN: Tampilkan Link / Preview File Bukti jika fileUrl ada
+  const fileContainer = document.getElementById('evalFileLinkContainer');
+  if (fileContainer) {
+    if (ev.fileUrl && ev.fileUrl.trim() !== "") {
+      fileContainer.innerHTML = `
+        <div class="alert alert-success py-2 mb-0 d-flex align-items-center justify-content-between">
+          <div>
+            <i class="fa-solid fa-file-circle-check me-2 text-success fs-5"></i>
+            <strong>Bukti Tersimpan (${ev.bulan}):</strong>
+          </div>
+          <div>
+            <a href="${ev.fileUrl}" target="_blank" class="btn btn-sm btn-outline-success">
+              <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Lihat / Buka File Bukti
+            </a>
+          </div>
+        </div>
+      `;
+    } else {
+      fileContainer.innerHTML = `
+        <small class="text-muted"><i class="fa-solid fa-circle-info me-1"></i>Belum ada file bukti yang di-upload untuk bulan ${selectedMonth}.</small>
+      `;
+    }
   }
+
+  toggleEvalFormFields();
+}
 
   function toggleEvalFormFields() {
     const val = document.getElementById('evalAdaKejadian').value;
@@ -974,6 +1002,8 @@ async function openEvaluasiModal(id) {
       });
       const result = await res.json();
       if (result.success) {
+        // Reset input file agar siap untuk upload baru jika diperlukan
+        document.getElementById('evalFileInput').value = '';
         bootstrap.Modal.getInstance(document.getElementById('evaluasiModal')).hide();
         Swal.fire('Berhasil!', result.message, 'success');
         loadRisksFromAPI();
