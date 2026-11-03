@@ -455,7 +455,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwTUri0JvzrcsGD4Bp-8DD4kXlqOYa4y2OU-_eyWgGC8MpoJVwX9eZTsJj8uLNe_za0/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbycVosyzBLor6INtwxdfC3qbWjrgxLlfBgpDDdVlQIcPXEn9wJnqqPkQQP8WOeAy7SM/exec";
 
   let currentUser = null;
   let riskData = [];
@@ -863,38 +863,52 @@
     }
   }
 
-  async function openEvaluasiModal(id) {
-    const item = riskData.find(r => r.id === id);
-    if (!item) return;
+async function openEvaluasiModal(id) {
+  const item = riskData.find(r => r.id === id);
+  if (!item) return;
 
-    const selectedYear = document.getElementById('filterTahun').value;
-    document.getElementById('evalRiskId').value = item.id;
-    document.getElementById('evalRiskTitle').innerText = item.risiko;
-    document.getElementById('evalRiskDept').innerText = item.dept;
-
-    // Lock button jika locked
-    const isLocked = item.isValidated === 'VALIDATED';
-    document.getElementById('btnSaveEval').disabled = isLocked;
-
-    Swal.showLoading();
-    try {
-      const res = await fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'getEvaluations', riskId: item.id, tahun: selectedYear, email: currentUser.email })
-      });
-      const result = await res.json();
-      Swal.close();
-
-      if (result.success) {
-        currentRiskEvaluations = result.data || [];
-        loadEvaluationForSelectedMonth();
-        new bootstrap.Modal(document.getElementById('evaluasiModal')).show();
-      }
-    } catch (err) {
-      Swal.fire('Error', 'Gagal memuat histori evaluasi.', 'error');
-    }
+  const isGlobalUser = ['Admin', 'Mutu', 'Tim Mutu'].includes(currentUser.role);
+  
+  // Validasi Otorisasi Departemen
+  if (!isGlobalUser && item.dept.toLowerCase() !== currentUser.dept.toLowerCase()) {
+    Swal.fire('Akses Ditolak', 'Anda hanya dapat mengisi evaluasi untuk risiko departemen Anda sendiri.', 'warning');
+    return;
   }
+
+  const selectedYear = document.getElementById('filterTahun').value;
+  document.getElementById('evalRiskId').value = item.id;
+  document.getElementById('evalRiskTitle').innerText = item.risiko;
+  document.getElementById('evalRiskDept').innerText = item.dept;
+
+  // Tombol Simpan Evaluasi dikunci (disabled) HANYA jika status risiko sudah VALIDATED oleh Tim Mutu
+  const isLocked = item.isValidated === 'VALIDATED';
+  const btnSave = document.getElementById('btnSaveEval');
+  if (btnSave) {
+    btnSave.disabled = isLocked;
+    btnSave.title = isLocked ? "Risiko ini telah divalidasi dan dikunci oleh Tim Mutu" : "Simpan Evaluasi";
+  }
+
+  Swal.showLoading();
+  try {
+    const res = await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'getEvaluations', riskId: item.id, tahun: selectedYear, email: currentUser.email })
+    });
+    const result = await res.json();
+    Swal.close();
+
+    if (result.success) {
+      currentRiskEvaluations = result.data || [];
+      loadEvaluationForSelectedMonth();
+      new bootstrap.Modal(document.getElementById('evaluasiModal')).show();
+    } else {
+      Swal.fire('Error', result.message, 'error');
+    }
+  } catch (err) {
+    Swal.fire('Error', 'Gagal memuat histori evaluasi.', 'error');
+  }
+}
 
   function loadEvaluationForSelectedMonth() {
     const selectedMonth = document.getElementById('evalBulan').value;
