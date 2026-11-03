@@ -435,17 +435,51 @@
             </div>
           </div>
 
-          <div id="sectionAdaKejadian" class="d-none p-3 border rounded bg-light mb-3">
-            <h6 class="fw-bold text-danger mb-3">Penanganan & Mitigasi Baru</h6>
-            <div class="mb-3">
-              <label class="form-label fw-semibold">Analisis Penyebab Kejadian</label>
-              <textarea id="evalAnalisisPenyebab" class="form-control" rows="2"></textarea>
+        <!-- SECTION JIKA YA (ADA KEJADIAN) -->
+        <div id="sectionAdaKejadian" class="d-none p-3 border rounded bg-light mb-3">
+          <h6 class="fw-bold text-danger mb-3"><i class="fa-solid fa-triangle-exclamation me-1"></i> Penanganan & Mitigasi Baru</h6>
+  
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Analisis Penyebab Kejadian</label>
+            <textarea id="evalAnalisisPenyebab" class="form-control" rows="2" placeholder="Jelaskan faktor utama penyebab risiko tetap terjadi..."></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Uraian Mitigasi Baru / Tindakan Korektif</label>
+            <textarea id="evalMitigasiBaru" class="form-control" rows="2" placeholder="Uraikan rencana / tindakan mitigasi baru..."></textarea>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Klasifikasi Pengendalian Risiko Baru</label>
+              <select id="evalKlasifikasiBaru" class="form-select">
+                <option value="Administratif - Preventif">Administratif - Preventif</option>
+                <option value="Administratif - Korektif">Administratif - Korektif</option>
+                <option value="Teknis - Preventif">Teknis - Preventif</option>
+                <option value="Teknis - Korektif">Teknis - Korektif</option>
+                <option value="APD - Preventif">APD - Preventif</option>
+                <option value="APD - Korektif">APD - Korektif</option>
+              </select>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold">Uraian Mitigasi Baru</label>
-              <textarea id="evalMitigasiBaru" class="form-control" rows="2"></textarea>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Anggaran Biaya Baru (Rp)</label>
+              <input type="number" id="evalAnggaranBaru" class="form-control" value="0" min="0">
             </div>
-            <div class="mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Target Waktu Penyelesaian</label>
+              <input type="text" id="evalTargetBaru" class="form-control" placeholder="Contoh: 14 hari kerja">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Pelaksana Baru</label>
+              <input type="text" id="evalPelaksanaBaru" class="form-control" placeholder="Nama / Jabatan Pelaksana">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Penanggung Jawab Baru (PJ)</label>
+              <input type="text" id="evalPJBaru" class="form-control" placeholder="Nama / Jabatan PJ">
+            </div>
+          </div>
+
+          <div class="mb-3">
             <label class="form-label fw-semibold">Upload File Bukti / Penjelasan (.pdf, .jpg, .png)</label>
             <input type="file" id="evalFileInput" class="form-control" accept=".pdf, image/*">
   
@@ -454,7 +488,7 @@
   
             <small class="text-muted d-block mt-1">* File tersimpan otomatis di Google Drive</small>
           </div>
-          </div>
+        </div>
 
           <div id="sectionTidakAdaKejadian" class="d-none p-3 border rounded bg-light mb-3">
             <h6 class="fw-bold text-success mb-3">Evaluasi Efektivitas Mitigasi</h6>
@@ -961,6 +995,14 @@ async function openEvaluasiModal(id) {
   document.getElementById('evalAdaKejadian').value = ev.adaKejadian || '';
   document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
   document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
+
+  // FIELD BARU: Mengisi nilai klasifikasi, anggaran, target, pelaksana, dan PJ
+  document.getElementById('evalKlasifikasiBaru').value = ev.klasifikasiBaru || 'Administratif - Preventif';
+  document.getElementById('evalAnggaranBaru').value = ev.anggaranBaru || 0;
+  document.getElementById('evalTargetBaru').value = ev.targetBaru || '';
+  document.getElementById('evalPelaksanaBaru').value = ev.pelaksanaBaru || '';
+  document.getElementById('evalPJBaru').value = ev.pjBaru || '';
+    
   document.getElementById('evalEfektifJikaTidak').value = ev.efektifJikaTidak || '';
 
   // PERBAIKAN: Tampilkan Link / Preview File Bukti jika fileUrl ada
@@ -1002,7 +1044,10 @@ async function openEvaluasiModal(id) {
 
   async function saveEvaluasiRisk() {
     const form = document.getElementById('formEvaluasi');
-    if (!form.checkValidity()) { form.reportValidity(); return; }
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
 
     const riskId = document.getElementById('evalRiskId').value;
     const bulan = document.getElementById('evalBulan').value;
@@ -1026,6 +1071,14 @@ async function openEvaluasiModal(id) {
         adaKejadian: document.getElementById('evalAdaKejadian').value,
         analisisPenyebab: document.getElementById('evalAnalisisPenyebab').value,
         mitigasiBaru: document.getElementById('evalMitigasiBaru').value,
+
+        // MENGIRIMKAN SELURUH FIELD SESUAI SHEET EVALUATIONS
+        klasifikasiBaru: document.getElementById('evalKlasifikasiBaru').value,
+        anggaranBaru: parseInt(document.getElementById('evalAnggaranBaru').value) || 0,
+        targetBaru: document.getElementById('evalTargetBaru').value,
+        pelaksanaBaru: document.getElementById('evalPelaksanaBaru').value,
+        pjBaru: document.getElementById('evalPJBaru').value,
+        
         efektifJikaTidak: document.getElementById('evalEfektifJikaTidak').value,
         fileData: fileData, fileName: fileName, mimeType: mimeType
       }
