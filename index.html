@@ -154,16 +154,32 @@
       <!-- FILTER BAR -->
       <div class="card p-3 mb-4">
         <div class="row g-3 align-items-center">
-          <div class="col-md-6">
+          <div class="col-md-5">
             <label class="form-label fw-semibold">Cari Risiko / Penyebab</label>
             <input type="text" id="filterSearch" class="form-control" placeholder="Kata kunci..." onkeyup="filterTable()">
           </div>
           <div class="col-md-3">
             <label class="form-label fw-semibold">Pilih Tahun</label>
-            <select id="filterTahun" class="form-select" onchange="loadRisksFromAPI()">
-              <option value="2026" selected>2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
+              <select id="filterTahun" class="form-select" onchange="loadRisksFromAPI()">
+                <option value="2026" selected>2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+              </select>
+            </div>
+
+          !-- ELEMEN DROPDOWN KHUSUS ADMIN & TIM MUTU -->
+          <div class="col-md-4 d-none" id="containerFilterDept">
+            <label class="form-label fw-semibold">Filter Departemen (Admin/Mutu)</label>
+            <select id="filterDept" class="form-select" onchange="loadRisksFromAPI()">
+              <option value="ALL" selected>-- Semua Departemen --</option>
+              <option value="CS">Customer Service</option>
+              <option value="MKT">Marketing</option>
+              <option value="LAB">Laboratorium</option>
+              <option value="CL">Clinic</option>
+              <option value="HR">Human Resources</option>
+              <option value="GA">General Affairs</option>
+              <option value="IT">Information Technology</option>
+              <option value="FINACC">Finance & Accounting</option>
             </select>
           </div>
         </div>
@@ -460,7 +476,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9Ytx8ejCqITplknVEb0lUuXOWx7VsiEiz3aL3vY1BoKmY4ms0-a74Zj2_wmEfJqvY/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyALW2UQzP0ZLN1g4GJi1zj9N_RWV3BjxAea6vGDqmU4VvYDNgS23Wl_4KEWqFisdJ_/exec";
 
   let currentUser = null;
   let riskData = [];
@@ -558,6 +574,15 @@
     document.getElementById('userDisplayDept').innerText = `Dept: ${currentUser.dept}`;
     document.getElementById('userDisplayRole').innerText = currentUser.role;
 
+    // Tampilkan Dropdown Filter Departemen HANYA jika Role = Admin atau Mutu
+    const isGlobalUser = ['Admin', 'Mutu', 'Tim Mutu'].includes(currentUser.role);
+    const containerFilterDept = document.getElementById('containerFilterDept');
+    if (isGlobalUser) {
+      containerFilterDept.classList.remove('d-none');
+    } else {
+    containerFilterDept.classList.add('d-none');
+    }
+    
     // KEBUTUHAN 1: Atur Otorisasi Tambah Risiko (Admin, SPV, Manager)
     const canAdd = ['Admin', 'Manager', 'SPV', 'Supervisor'].includes(currentUser.role);
     if (canAdd) {
@@ -575,12 +600,22 @@
 
   async function loadRisksFromAPI() {
     const selectedYear = document.getElementById('filterTahun').value;
+    
+    // Ambil nilai filter departemen jika dropdown aktif
+    const filterDeptEl = document.getElementById('filterDept');
+    const selectedDept = filterDeptEl ? filterDeptEl.value : 'ALL';
+    
     Swal.showLoading();
     try {
       const res = await fetch(GAS_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'getRisks', email: currentUser.email, tahun: selectedYear })
+        body: JSON.stringify({
+          action: 'getRisks',
+          email: currentUser.email,
+          tahun: selectedYear,
+          filterDept: selectedDept
+        })
       });
       const result = await res.json();
 
