@@ -511,7 +511,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwWz_8r50GBp6Er-BO8uHcyPgnvXiRrLYVUOaEROH3FrQoM3OItG6ebdg3IjDFGnh1u/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw-ZdlOyyqFGfcRMmei0NtjRBKrhU_EgGThHFmrBlYMVvqhQh1jfZlFyniRxR7uU97y/exec";
 
   let currentUser = null;
   let riskData = [];
@@ -707,11 +707,14 @@
     }
   }
 
+  // ----------------------------------------------------
+  // PROSES PERSETUJUAN / PENOLAKAN AKUN
+  // ----------------------------------------------------
   function renderPendingTable(users) {
     const tbody = document.getElementById('pendingTableBody');
     tbody.innerHTML = '';
 
-    if (users.length === 0) {
+    if (!users || users.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Tidak ada akun baru yang menunggu persetujuan.</td></tr>';
       return;
     }
@@ -734,6 +737,48 @@
       `;
       tbody.appendChild(tr);
     });
+  }
+
+  async function processUserStatus(targetEmail, newStatus) {
+    const actionText = newStatus === 'Active' ? 'menyetujui' : 'menolak';
+  
+    const confirm = await Swal.fire({
+      title: 'Konfirmasi Persetujuan',
+      text: `Apakah Anda yakin ingin ${actionText} akun ${targetEmail}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Proses',
+      cancelButtonText: 'Batal'
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    Swal.showLoading();
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ 
+          action: 'updateUserStatus', 
+          email: currentUser.email, 
+          targetEmail: targetEmail, 
+          status: newStatus 
+        })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        await Swal.fire('Berhasil!', result.message, 'success');
+      
+        // Refresh tabel pending dan jumlah badge
+        openApprovalModal();
+        loadPendingUsersCount();
+      } else {
+        Swal.fire('Gagal', result.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal memproses status pengguna.', 'error');
+    }
   }
   
   async function loadRisksFromAPI() {
