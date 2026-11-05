@@ -511,7 +511,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzQxGq3oAaw7bMtxglrB2qumSg5QCOASUDd8gXQeyKqj10yDZViT1zUQexQ77tU3Tvv/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzItBxdmynr8Q7hsx41khCoxnYfn2XDyk9UnNf-h4KV4DwSLfoWv2ubOGj7f6Pr9cZF/exec";
 
   let currentUser = null;
   let riskData = [];
@@ -564,35 +564,35 @@
   }
 
   async function handleRegister(e) {
-    e.preventDefault();
-    const data = {
-      name: document.getElementById('regName').value,
-      email: document.getElementById('regEmail').value,
-      dept: document.getElementById('regDept').value,
-      role: document.getElementById('regRole').value,
-      password: document.getElementById('regPassword').value
-    };
+  e.preventDefault();
+  const data = {
+    name: document.getElementById('regName').value,
+    email: document.getElementById('regEmail').value,
+    dept: document.getElementById('regDept').value,
+    role: document.getElementById('regRole').value,
+    password: document.getElementById('regPassword').value
+  };
 
-    Swal.showLoading();
-    try {
-      const res = await fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'register', data: data })
-      });
-      const result = await res.json();
+  Swal.showLoading();
+  try {
+    const res = await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'register', data: data })
+    });
+    const result = await res.json();
 
-      if (result.success) {
-        Swal.fire('Berhasil', result.message, 'success');
-        document.getElementById('formRegister').reset();
-        toggleAuthView('login');
-      } else {
-        Swal.fire('Gagal', result.message, 'error');
-      }
-    } catch (err) {
-      Swal.fire('Error', 'Gagal mendaftar user.', 'error');
+    if (result.success) {
+      Swal.fire('Pendaftaran Berhasil', result.message, 'success');
+      document.getElementById('formRegister').reset();
+      toggleAuthView('login');
+    } else {
+      Swal.fire('Gagal Pendaftaran', result.message, 'error');
     }
+  } catch (err) {
+    Swal.fire('Error', 'Gagal mendaftar user baru.', 'error');
   }
+}
 
   function handleLogout() {
     localStorage.removeItem("riskAppUser");
