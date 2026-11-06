@@ -432,6 +432,8 @@
                 <option value="Ya">Ya (Terjadi Kejadian Risiko)</option>
                 <option value="Tidak">Tidak (Tidak Ada Kejadian)</option>
               </select>
+              <!-- PESAN PERINGATAN KETIKA DIKUNCI -->
+              <small id="evalAdaKejadianNotice" class="d-block mt-1"></small>
             </div>
           </div>
 
@@ -1189,9 +1191,44 @@ async function openEvaluasiModal(id) {
 
   function loadEvaluationForSelectedMonth() {
   const selectedMonth = document.getElementById('evalBulan').value;
+  const currentRiskId = parseInt(document.getElementById('evalRiskId').value);
+  const currentRisk = riskData.find(r => r.id === currentRiskId);
   const ev = currentRiskEvaluations.find(e => e.bulan === selectedMonth) || {};
 
-  document.getElementById('evalAdaKejadian').value = ev.adaKejadian || '';
+  // Pemetaan nama bulan ke key monitoring di JSON (misal: 'Mar' -> 'mar')
+  const monthKeyMap = {
+    'Jan': 'jan', 'Feb': 'feb', 'Mar': 'mar', 'Apr': 'apr',
+    'Mei': 'mei', 'Jun': 'jun', 'Jul': 'jul', 'Agu': 'agu',
+    'Sep': 'sep', 'Okt': 'okt', 'Nov': 'nov', 'Des': 'des'
+  };
+
+  const mKey = monthKeyMap[selectedMonth] || selectedMonth.toLowerCase();
+  const monthIncidentCount = currentRisk && currentRisk.monitoring ? (parseInt(currentRisk.monitoring[mKey]) || 0) : 0;
+
+  const selectAdaKejadian = document.getElementById('evalAdaKejadian');
+  const optTidak = document.getElementById('optEvalTidak');
+  const noticeEl = document.getElementById('evalAdaKejadianNotice');
+
+  // LOGIKA KUNCI DROPDOWN JIKA MONITORING > 0
+  if (monthIncidentCount > 0) {
+    selectAdaKejadian.value = 'Ya';
+    if (optTidak) optTidak.disabled = true; // Nonaktifkan opsi "Tidak"
+    
+    if (noticeEl) {
+      noticeEl.className = "text-danger fw-semibold d-block mt-1";
+      noticeEl.innerHTML = `<i class="fa-solid fa-lock me-1"></i> Terkunci "Ya" karena pada monitoring ${selectedMonth} tercatat ${monthIncidentCount} kejadian.`;
+    }
+  } else {
+    if (optTidak) optTidak.disabled = false; // Aktifkan kembali opsi "Tidak"
+    selectAdaKejadian.value = ev.adaKejadian || '';
+    
+    if (noticeEl) {
+      noticeEl.className = "text-muted d-block mt-1";
+      noticeEl.innerText = "";
+    }
+  }
+
+  // Isi data evaluasi yang sudah tersimpan sebelumnya
   document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
   document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
 
