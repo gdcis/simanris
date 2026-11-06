@@ -415,27 +415,27 @@
             <small><strong>Departemen:</strong> <span id="evalRiskDept">-</span></small>
           </div>
 
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Pilih Bulan</label>
-              <select id="evalBulan" class="form-select" onchange="loadEvaluationForSelectedMonth()" required>
-                <option value="Jan">Januari</option><option value="Feb">Februari</option><option value="Mar">Maret</option>
-                <option value="Apr">April</option><option value="Mei">Mei</option><option value="Jun">Juni</option>
-                <option value="Jul">Juli</option><option value="Agu">Agustus</option><option value="Sep">September</option>
-                <option value="Okt" selected>Oktober</option><option value="Nov">November</option><option value="Des">Desember</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Apakah Masih Ada Kejadian?</label>
-              <select id="evalAdaKejadian" class="form-select" onchange="toggleEvalFormFields()" required>
-                <option value="">-- Pilih --</option>
-                <option value="Ya">Ya (Terjadi Kejadian Risiko)</option>
-                <option value="Tidak">Tidak (Tidak Ada Kejadian)</option>
-              </select>
-              <!-- PESAN PERINGATAN KETIKA DIKUNCI -->
-              <small id="evalAdaKejadianNotice" class="d-block mt-1"></small>
-            </div>
-          </div>
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <label class="form-label fw-semibold">Pilih Bulan</label>
+    <select id="evalBulan" class="form-select" onchange="loadEvaluationForSelectedMonth()" required>
+      <option value="Jan">Januari</option><option value="Feb">Februari</option><option value="Mar">Maret</option>
+      <option value="Apr">April</option><option value="Mei">Mei</option><option value="Jun">Juni</option>
+      <option value="Jul">Juli</option><option value="Agu">Agustus</option><option value="Sep">September</option>
+      <option value="Okt" selected>Oktober</option><option value="Nov">November</option><option value="Des">Desember</option>
+    </select>
+  </div>
+  <div class="col-md-6">
+    <label class="form-label fw-semibold">Apakah Masih Ada Kejadian?</label>
+    <select id="evalAdaKejadian" class="form-select" onchange="toggleEvalFormFields()" required>
+      <option value="">-- Pilih --</option>
+      <option value="Ya" id="optEvalYa">Ya (Terjadi Kejadian Risiko)</option>
+      <option value="Tidak" id="optEvalTidak">Tidak (Tidak Ada Kejadian)</option>
+    </select>
+    <!-- WADAH PESAN NOTIFIKASI KUNCI -->
+    <small id="evalAdaKejadianNotice" class="d-block mt-1"></small>
+  </div>
+</div>
 
         <!-- SECTION JIKA YA (ADA KEJADIAN) -->
         <div id="sectionAdaKejadian" class="d-none p-3 border rounded bg-light mb-3">
@@ -1189,13 +1189,18 @@ async function openEvaluasiModal(id) {
   }
 }
 
-  function loadEvaluationForSelectedMonth() {
+// Variable global kecil untuk menyimpan status penguncian bulan aktif
+let isCurrentMonthIncidentLocked = false;
+
+function loadEvaluationForSelectedMonth() {
   const selectedMonth = document.getElementById('evalBulan').value;
-  const currentRiskId = parseInt(document.getElementById('evalRiskId').value);
-  const currentRisk = riskData.find(r => r.id === currentRiskId);
+  const currentRiskId = document.getElementById('evalRiskId').value;
+  
+  // PERBAIKAN: Gunakan pembanding longgar (==) agar mencakup String maupun Number
+  const currentRisk = riskData.find(r => r.id == currentRiskId);
   const ev = currentRiskEvaluations.find(e => e.bulan === selectedMonth) || {};
 
-  // Pemetaan nama bulan ke key monitoring di JSON (misal: 'Mar' -> 'mar')
+  // Pemetaan nama bulan ke atribut objek monitoring
   const monthKeyMap = {
     'Jan': 'jan', 'Feb': 'feb', 'Mar': 'mar', 'Apr': 'apr',
     'Mei': 'mei', 'Jun': 'jun', 'Jul': 'jul', 'Agu': 'agu',
@@ -1203,23 +1208,34 @@ async function openEvaluasiModal(id) {
   };
 
   const mKey = monthKeyMap[selectedMonth] || selectedMonth.toLowerCase();
-  const monthIncidentCount = currentRisk && currentRisk.monitoring ? (parseInt(currentRisk.monitoring[mKey]) || 0) : 0;
+  
+  // Ambil total angka monitoring pada bulan tersebut
+  const monthIncidentCount = (currentRisk && currentRisk.monitoring) ? (parseInt(currentRisk.monitoring[mKey]) || 0) : 0;
 
   const selectAdaKejadian = document.getElementById('evalAdaKejadian');
   const optTidak = document.getElementById('optEvalTidak');
   const noticeEl = document.getElementById('evalAdaKejadianNotice');
 
-  // LOGIKA KUNCI DROPDOWN JIKA MONITORING > 0
+  // LOGIKA PENGKUNCIAN MUTLAK JIKA MONITORING > 0
   if (monthIncidentCount > 0) {
+    isCurrentMonthIncidentLocked = true;
     selectAdaKejadian.value = 'Ya';
-    if (optTidak) optTidak.disabled = true; // Nonaktifkan opsi "Tidak"
+    
+    // Disable opsi "Tidak" pada dropdown
+    if (optTidak) optTidak.disabled = true;
+    
+    // Tambahkan style visual bahwa dropdown terkunci ke opsi 'Ya'
+    selectAdaKejadian.classList.add('bg-light');
     
     if (noticeEl) {
-      noticeEl.className = "text-danger fw-semibold d-block mt-1";
+      noticeEl.className = "text-danger fw-bold d-block mt-1";
       noticeEl.innerHTML = `<i class="fa-solid fa-lock me-1"></i> Terkunci "Ya" karena pada monitoring ${selectedMonth} tercatat ${monthIncidentCount} kejadian.`;
     }
   } else {
-    if (optTidak) optTidak.disabled = false; // Aktifkan kembali opsi "Tidak"
+    isCurrentMonthIncidentLocked = false;
+    if (optTidak) optTidak.disabled = false;
+    selectAdaKejadian.classList.remove('bg-light');
+    
     selectAdaKejadian.value = ev.adaKejadian || '';
     
     if (noticeEl) {
@@ -1228,11 +1244,10 @@ async function openEvaluasiModal(id) {
     }
   }
 
-  // Isi data evaluasi yang sudah tersimpan sebelumnya
+  // Isi form dengan data evaluasi tersimpan (jika ada)
   document.getElementById('evalAnalisisPenyebab').value = ev.analisisPenyebab || '';
   document.getElementById('evalMitigasiBaru').value = ev.mitigasiBaru || '';
 
-  // FIELD BARU: Mengisi nilai klasifikasi, anggaran, target, pelaksana, dan PJ
   document.getElementById('evalKlasifikasiBaru').value = ev.klasifikasiBaru || 'Administratif - Preventif';
   document.getElementById('evalAnggaranBaru').value = ev.anggaranBaru || 0;
   document.getElementById('evalTargetBaru').value = ev.targetBaru || '';
@@ -1241,7 +1256,7 @@ async function openEvaluasiModal(id) {
     
   document.getElementById('evalEfektifJikaTidak').value = ev.efektifJikaTidak || '';
 
-  // PERBAIKAN: Tampilkan Link / Preview File Bukti jika fileUrl ada
+  // Tampilkan link file bukti tersimpan jika ada
   const fileContainer = document.getElementById('evalFileLinkContainer');
   if (fileContainer) {
     if (ev.fileUrl && ev.fileUrl.trim() !== "") {
@@ -1268,15 +1283,36 @@ async function openEvaluasiModal(id) {
   toggleEvalFormFields();
 }
 
-  function toggleEvalFormFields() {
-    const val = document.getElementById('evalAdaKejadian').value;
-    const secYa = document.getElementById('sectionAdaKejadian');
-    const secTidak = document.getElementById('sectionTidakAdaKejadian');
-
-    if (val === 'Ya') { secYa.classList.remove('d-none'); secTidak.classList.add('d-none'); }
-    else if (val === 'Tidak') { secTidak.classList.remove('d-none'); secYa.classList.add('d-none'); }
-    else { secYa.classList.add('d-none'); secTidak.classList.add('d-none'); }
+// PROTEKSI TAMBAHAN: Cegah user mengubah paksa nilai jika sedang terkunci
+function toggleEvalFormFields() {
+  const selectAdaKejadian = document.getElementById('evalAdaKejadian');
+  
+  if (isCurrentMonthIncidentLocked && selectAdaKejadian.value === 'Tidak') {
+    selectAdaKejadian.value = 'Ya';
+    Swal.fire({
+      icon: 'warning',
+      title: 'Pilihan Terkunci',
+      text: 'Bulan ini memiliki angka kejadian > 0 pada tabel monitoring, sehingga evaluasi wajib diisi dengan status "Ya".',
+      timer: 2000,
+      showConfirmButton: false
+    });
   }
+
+  const val = selectAdaKejadian.value;
+  const secYa = document.getElementById('sectionAdaKejadian');
+  const secTidak = document.getElementById('sectionTidakAdaKejadian');
+
+  if (val === 'Ya') { 
+    secYa.classList.remove('d-none'); 
+    secTidak.classList.add('d-none'); 
+  } else if (val === 'Tidak') { 
+    secTidak.classList.remove('d-none'); 
+    secYa.classList.add('d-none'); 
+  } else { 
+    secYa.classList.add('d-none'); 
+    secTidak.classList.add('d-none'); 
+  }
+}
 
   async function saveEvaluasiRisk() {
     const form = document.getElementById('formEvaluasi');
